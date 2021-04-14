@@ -33,13 +33,7 @@ import org.keycloak.jose.jwk.JWKBuilder;
 import org.keycloak.models.Constants;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
-import org.keycloak.protocol.oidc.endpoints.AuthorizationEndpoint;
-import org.keycloak.protocol.oidc.endpoints.LoginStatusIframeEndpoint;
-import org.keycloak.protocol.oidc.endpoints.LogoutEndpoint;
-import org.keycloak.protocol.oidc.endpoints.ThirdPartyCookiesIframeEndpoint;
-import org.keycloak.protocol.oidc.endpoints.TokenEndpoint;
-import org.keycloak.protocol.oidc.endpoints.TokenRevocationEndpoint;
-import org.keycloak.protocol.oidc.endpoints.UserInfoEndpoint;
+import org.keycloak.protocol.oidc.endpoints.*;
 import org.keycloak.protocol.oidc.ext.OIDCExtProvider;
 import org.keycloak.services.CorsErrorResponseException;
 import org.keycloak.services.managers.AuthenticationManager;
@@ -185,6 +179,16 @@ public class OIDCLoginProtocolService {
     @Path("token")
     public Object token() {
         TokenEndpoint endpoint = new TokenEndpoint(tokenManager, realm, event);
+        ResteasyProviderFactory.getInstance().injectProperties(endpoint);
+        return endpoint;
+    }
+
+    /**
+     * Pushed Authorization Request endpoint
+     */
+    @Path("par")
+    public Object par() {
+        ParEndpoint endpoint = new ParEndpoint(session, tokenManager, realm, event);
         ResteasyProviderFactory.getInstance().injectProperties(endpoint);
         return endpoint;
     }

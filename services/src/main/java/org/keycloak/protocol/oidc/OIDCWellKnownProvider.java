@@ -44,7 +44,6 @@ import org.keycloak.wellknown.WellKnownProvider;
 
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
-
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
@@ -69,9 +68,9 @@ public class OIDCWellKnownProvider implements WellKnownProvider {
     public static final List<String> DEFAULT_CLIENT_AUTH_SIGNING_ALG_VALUES_SUPPORTED = list(Algorithm.RS256.toString());
 
     // The exact list depends on protocolMappers
-    public static final List<String> DEFAULT_CLAIMS_SUPPORTED= list("aud", "sub", "iss", IDToken.AUTH_TIME, IDToken.NAME, IDToken.GIVEN_NAME, IDToken.FAMILY_NAME, IDToken.PREFERRED_USERNAME, IDToken.EMAIL, IDToken.ACR);
+    public static final List<String> DEFAULT_CLAIMS_SUPPORTED = list("aud", "sub", "iss", IDToken.AUTH_TIME, IDToken.NAME, IDToken.GIVEN_NAME, IDToken.FAMILY_NAME, IDToken.PREFERRED_USERNAME, IDToken.EMAIL, IDToken.ACR);
 
-    public static final List<String> DEFAULT_CLAIM_TYPES_SUPPORTED= list("normal");
+    public static final List<String> DEFAULT_CLAIM_TYPES_SUPPORTED = list("normal");
 
     // KEYCLOAK-7451 OAuth Authorization Server Metadata for Proof Key for Code Exchange
     public static final List<String> DEFAULT_CODE_CHALLENGE_METHODS_SUPPORTED = list(OAuth2Constants.PKCE_METHOD_PLAIN, OAuth2Constants.PKCE_METHOD_S256);
@@ -100,7 +99,7 @@ public class OIDCWellKnownProvider implements WellKnownProvider {
         config.setUserinfoEndpoint(backendUriBuilder.clone().path(OIDCLoginProtocolService.class, "issueUserInfo").build(realm.getName(), OIDCLoginProtocol.LOGIN_PROTOCOL).toString());
         config.setLogoutEndpoint(frontendUriBuilder.clone().path(OIDCLoginProtocolService.class, "logout").build(realm.getName(), OIDCLoginProtocol.LOGIN_PROTOCOL).toString());
         URI jwksUri = backendUriBuilder.clone().path(OIDCLoginProtocolService.class, "certs").build(realm.getName(),
-            OIDCLoginProtocol.LOGIN_PROTOCOL);
+                                                                                                    OIDCLoginProtocol.LOGIN_PROTOCOL);
 
         // NOTE: Don't hardcode HTTPS checks here. JWKS URI is exposed just in the development/testing environment. For the production environment, the OIDCWellKnownProvider
         // is not exposed over "http" at all.
@@ -130,9 +129,9 @@ public class OIDCWellKnownProvider implements WellKnownProvider {
         config.setClaimsParameterSupported(true);
 
         List<String> scopeNames = realm.getClientScopesStream()
-                .filter(clientScope -> Objects.equals(OIDCLoginProtocol.LOGIN_PROTOCOL, clientScope.getProtocol()))
-                .map(ClientScopeModel::getName)
-                .collect(Collectors.toList());
+                                          .filter(clientScope -> Objects.equals(OIDCLoginProtocol.LOGIN_PROTOCOL, clientScope.getProtocol()))
+                                          .map(ClientScopeModel::getName)
+                                          .collect(Collectors.toList());
         scopeNames.add(0, OAuth2Constants.SCOPE_OPENID);
         config.setScopesSupported(scopeNames);
 
@@ -148,7 +147,7 @@ public class OIDCWellKnownProvider implements WellKnownProvider {
         config.setTlsClientCertificateBoundAccessTokens(true);
 
         URI revocationEndpoint = frontendUriBuilder.clone().path(OIDCLoginProtocolService.class, "revoke")
-            .build(realm.getName(), OIDCLoginProtocol.LOGIN_PROTOCOL);
+                                         .build(realm.getName(), OIDCLoginProtocol.LOGIN_PROTOCOL);
 
         // NOTE: Don't hardcode HTTPS checks here. JWKS URI is exposed just in the development/testing environment. For the production environment, the OIDCWellKnownProvider
         // is not exposed over "http" at all.
@@ -159,6 +158,12 @@ public class OIDCWellKnownProvider implements WellKnownProvider {
 
         config.setBackchannelLogoutSupported(true);
         config.setBackchannelLogoutSessionSupported(true);
+
+        config.setRequirePushedAuthorizationRequests(false);
+        config.setPushedAuthorizationRequestEndpoint(backendUriBuilder.clone()
+                                                             .path(OIDCLoginProtocolService.class, "par")
+                                                             .build(realm.getName(), OIDCLoginProtocol.LOGIN_PROTOCOL)
+                                                             .toString());
 
         return config;
     }
@@ -173,15 +178,15 @@ public class OIDCWellKnownProvider implements WellKnownProvider {
 
     private List<String> getClientAuthMethodsSupported() {
         return session.getKeycloakSessionFactory().getProviderFactoriesStream(ClientAuthenticator.class)
-                .map(ClientAuthenticatorFactory.class::cast)
-                .map(caf -> caf.getProtocolAuthenticatorMethods(OIDCLoginProtocol.LOGIN_PROTOCOL))
-                .flatMap(Collection::stream)
-                .collect(Collectors.toList());
+                       .map(ClientAuthenticatorFactory.class::cast)
+                       .map(caf -> caf.getProtocolAuthenticatorMethods(OIDCLoginProtocol.LOGIN_PROTOCOL))
+                       .flatMap(Collection::stream)
+                       .collect(Collectors.toList());
     }
 
     private List<String> getSupportedAlgorithms(Class<? extends Provider> clazz, boolean includeNone) {
         Stream<String> supportedAlgorithms = session.getKeycloakSessionFactory().getProviderFactoriesStream(clazz)
-                .map(ProviderFactory::getId);
+                                                     .map(ProviderFactory::getId);
 
         if (includeNone) {
             supportedAlgorithms = Streams.concat(supportedAlgorithms, Stream.of("none"));

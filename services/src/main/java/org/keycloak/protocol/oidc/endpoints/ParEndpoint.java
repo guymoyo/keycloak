@@ -3,9 +3,11 @@ package org.keycloak.protocol.oidc.endpoints;
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.annotations.cache.NoCache;
 import org.keycloak.authentication.ParResponse;
+import org.keycloak.events.EventBuilder;
 import org.keycloak.models.CodeToTokenStoreProvider;
 import org.keycloak.models.KeycloakSession;
-import org.keycloak.services.resource.RealmResourceProvider;
+import org.keycloak.models.RealmModel;
+import org.keycloak.protocol.oidc.TokenManager;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
@@ -16,7 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class ParEndpoint implements RealmResourceProvider {
+public class ParEndpoint {
 
     private static final Logger LOG = Logger.getLogger(ParEndpoint.class);
 
@@ -28,9 +30,15 @@ public class ParEndpoint implements RealmResourceProvider {
     public static final String REDIRECT_URI = "redirect_uri";
 
     private final KeycloakSession session;
+    private final TokenManager tokenManager;
+    private final RealmModel realm;
+    private final EventBuilder event;
 
-    public ParEndpoint(KeycloakSession session) {
+    public ParEndpoint(KeycloakSession session, TokenManager tokenManager, RealmModel realm, EventBuilder event) {
         this.session = session;
+        this.tokenManager = tokenManager;
+        this.realm = realm;
+        this.event = event;
     }
 
     @POST
@@ -65,13 +73,4 @@ public class ParEndpoint implements RealmResourceProvider {
                        .build();
     }
 
-    @Override
-    public Object getResource() {
-        return this;
-    }
-
-    @Override
-    public void close() {
-
-    }
 }
