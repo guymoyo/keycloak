@@ -1,4 +1,4 @@
-package org.keycloak.authentication;
+package org.keycloak.protocol.par;
 
 public class ParResponse {
 

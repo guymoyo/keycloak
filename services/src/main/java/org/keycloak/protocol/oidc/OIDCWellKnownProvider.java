@@ -160,10 +160,10 @@ public class OIDCWellKnownProvider implements WellKnownProvider {
         config.setBackchannelLogoutSessionSupported(true);
 
         config.setRequirePushedAuthorizationRequests(false);
-        config.setPushedAuthorizationRequestEndpoint(backendUriBuilder.clone()
-                                                             .path(OIDCLoginProtocolService.class, "par")
-                                                             .build(realm.getName(), OIDCLoginProtocol.LOGIN_PROTOCOL)
-                                                             .toString());
+//        config.setPushedAuthorizationRequestEndpoint(backendUriBuilder.clone()
+//                                                             .path(OIDCLoginProtocolService.class, "par")
+//                                                             .build(realm.getName(), OIDCLoginProtocol.LOGIN_PROTOCOL)
+//                                                             .toString());
 
         return config;
     }
