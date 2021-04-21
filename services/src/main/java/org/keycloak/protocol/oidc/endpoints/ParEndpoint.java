@@ -3,10 +3,7 @@ package org.keycloak.protocol.oidc.endpoints;
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.annotations.cache.NoCache;
 import org.keycloak.events.EventBuilder;
-import org.keycloak.models.CodeToTokenStoreProvider;
-import org.keycloak.models.KeycloakContext;
-import org.keycloak.models.KeycloakSession;
-import org.keycloak.models.RealmModel;
+import org.keycloak.models.*;
 import org.keycloak.protocol.par.ParResponse;
 import org.keycloak.representations.idm.OAuth2ErrorRepresentation;
 import org.keycloak.services.resource.RealmResourceProvider;
@@ -47,8 +44,8 @@ public class ParEndpoint implements RealmResourceProvider {
         RealmModel realm = context.getRealm();
         EventBuilder event = new EventBuilder(realm, session, context.getConnection());
 
-        CodeToTokenStoreProvider codeStore = session.getProvider(CodeToTokenStoreProvider.class,
-                                                                 "infinispan");
+        PushedAuthzRequestStoreProvider parStore = session.getProvider(PushedAuthzRequestStoreProvider.class,
+                                                                        "par");
         Map<String, String> params = new HashMap<>();
         UUID grantId = UUID.randomUUID();
 
@@ -56,7 +53,7 @@ public class ParEndpoint implements RealmResourceProvider {
 
         formData.forEach((k, v) -> params.put(k, String.valueOf(v)));
 
-        codeStore.put(grantId, expiresIn, params);
+        parStore.put("grantId", expiresIn, params);
 
         ParResponse parResponse = new ParResponse(grantId.toString(), String.valueOf(expiresIn));
 
