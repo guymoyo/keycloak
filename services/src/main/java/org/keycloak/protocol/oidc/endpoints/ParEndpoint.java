@@ -8,6 +8,7 @@ import org.keycloak.models.KeycloakContext;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.protocol.par.ParResponse;
+import org.keycloak.representations.idm.OAuth2ErrorRepresentation;
 import org.keycloak.services.resource.RealmResourceProvider;
 
 import javax.ws.rs.Consumes;
@@ -18,6 +19,8 @@ import javax.ws.rs.core.Response;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
+import static org.keycloak.protocol.oidc.OIDCLoginProtocol.REQUEST_URI_PARAM;
 
 public class ParEndpoint implements RealmResourceProvider {
 
@@ -35,6 +38,10 @@ public class ParEndpoint implements RealmResourceProvider {
     public Response handlePar(MultivaluedMap<String, String> formData) {
 
         LOG.info("Received PAR object");
+
+        if (formData.containsKey(REQUEST_URI_PARAM)) {
+            return errorResponse(Response.Status.BAD_REQUEST.getStatusCode(), "invalid_request", "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed");
+        }
 
         KeycloakContext context = session.getContext();
         RealmModel realm = context.getRealm();
@@ -66,4 +73,10 @@ public class ParEndpoint implements RealmResourceProvider {
     public void close() {
 
     }
+
+    public Response errorResponse(int status, String error, String errorDescription) {
+        OAuth2ErrorRepresentation errorRep = new OAuth2ErrorRepresentation(error, errorDescription);
+        return Response.status(status).entity(errorRep).type(MediaType.APPLICATION_JSON_TYPE).build();
+    }
+
 }
