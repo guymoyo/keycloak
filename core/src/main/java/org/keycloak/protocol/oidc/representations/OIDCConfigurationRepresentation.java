@@ -142,11 +142,16 @@ public class OIDCConfigurationRepresentation {
     @JsonProperty("backchannel_logout_session_supported")
     private Boolean backchannelLogoutSessionSupported;
 
+    // These 3 parameters below are provided for FAPI 2.0 PAR request.
     @JsonProperty("require_pushed_authorization_requests")
     private Boolean requirePushedAuthorizationRequests;
 
     @JsonProperty("pushed_authorization_request_endpoint")
     private String pushedAuthorizationRequestEndpoint;
+
+    // A number that represents the lifetime of the request URI in seconds as a positive integer, the default value is 60.
+    @JsonProperty("request_uri_lifespan")
+    private Integer requestUriLifespan;
 
     protected Map<String, Object> otherClaims = new HashMap<String, Object>();
 
@@ -456,6 +461,14 @@ public class OIDCConfigurationRepresentation {
 
     public void setRequirePushedAuthorizationRequests(Boolean requirePushedAuthorizationRequests) {
         this.requirePushedAuthorizationRequests = requirePushedAuthorizationRequests;
+    }
+
+    public Integer getRequestUriLifespan() {
+        return requestUriLifespan;
+    }
+
+    public void setRequestUriLifespan(Integer requestUriLifespan) {
+        this.requestUriLifespan = requestUriLifespan;
     }
 
     @JsonAnyGetter

@@ -19,6 +19,9 @@ import java.util.UUID;
 
 import static org.keycloak.protocol.oidc.OIDCLoginProtocol.REQUEST_URI_PARAM;
 
+/**
+ * FAPI 2.0 Pushed Authorization Request endpoint
+ */
 public class ParEndpoint implements RealmResourceProvider {
 
     private static final Logger LOG = Logger.getLogger(ParEndpoint.class);

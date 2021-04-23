@@ -18,9 +18,11 @@
 package org.keycloak.models.sessions.infinispan;
 
 import org.infinispan.commons.api.BasicCache;
-import org.jboss.logging.Logger;
 import org.keycloak.Config;
-import org.keycloak.models.*;
+import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.KeycloakSessionFactory;
+import org.keycloak.models.PushedAuthzRequestStoreProvider;
+import org.keycloak.models.PushedAuthzRequestStoreProviderFactory;
 import org.keycloak.models.sessions.infinispan.entities.ActionTokenValueEntity;
 
 import java.util.function.Supplier;
