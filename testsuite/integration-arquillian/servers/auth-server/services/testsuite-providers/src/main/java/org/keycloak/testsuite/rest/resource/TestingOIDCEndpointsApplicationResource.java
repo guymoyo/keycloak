@@ -245,7 +245,7 @@ public class TestingOIDCEndpointsApplicationResource {
         byte[] serializedRequestObject = Base64Url.decode(encodedRequestObject);
         AuthorizationEndpointRequestObject oidcRequest = null;
         try {
-        	oidcRequest = JsonSerialization.readValue(serializedRequestObject, AuthorizationEndpointRequestObject.class);
+            oidcRequest = JsonSerialization.readValue(serializedRequestObject, AuthorizationEndpointRequestObject.class);
         } catch (IOException e) {
             throw new BadRequestException("deserialize request object failed : " + e.getMessage());
         }
@@ -377,6 +377,25 @@ public class TestingOIDCEndpointsApplicationResource {
 
         @JsonProperty(Constants.KC_ACTION)
         String action;
+
+        // CIBA
+
+        @JsonProperty(CibaGrantType.CLIENT_NOTIFICATION_TOKEN)
+        String clientNotificationToken;
+
+        @JsonProperty(CibaGrantType.LOGIN_HINT_TOKEN)
+        String loginHintToken;
+
+        @JsonProperty(OIDCLoginProtocol.ID_TOKEN_HINT)
+        String idTokenHint;
+
+        @JsonProperty(CibaGrantType.USER_CODE)
+        String userCode;
+
+        @JsonProperty(CibaGrantType.BINDING_MESSAGE)
+        String bindingMessage;
+
+        Integer requested_expiry;
 
         public String getClientId() {
             return clientId;
@@ -513,6 +532,55 @@ public class TestingOIDCEndpointsApplicationResource {
         public void setAction(String action) {
             this.action = action;
         }
+
+        public String getClientNotificationToken() {
+            return clientNotificationToken;
+        }
+
+        public void setClientNotificationToken(String clientNotificationToken) {
+            this.clientNotificationToken = clientNotificationToken;
+        }
+
+        public String getLoginHintToken() {
+            return loginHintToken;
+        }
+
+        public void setLoginHintToken(String loginHintToken) {
+            this.loginHintToken = loginHintToken;
+        }
+
+        public String getIdTokenHint() {
+            return idTokenHint;
+        }
+
+        public void setIdTokenHint(String idTokenHint) {
+            this.idTokenHint = idTokenHint;
+        }
+
+        public String getBindingMessage() {
+            return bindingMessage;
+        }
+
+        public void setBindingMessage(String bindingMessage) {
+            this.bindingMessage = bindingMessage;
+        }
+
+        public String getUserCode() {
+            return userCode;
+        }
+
+        public void setUserCode(String userCode) {
+            this.userCode = userCode;
+        }
+
+        public Integer getRequested_expiry() {
+            return requested_expiry;
+        }
+
+        public void setRequested_expiry(Integer requested_expiry) {
+            this.requested_expiry = requested_expiry;
+        }
+
     }
 
     @POST

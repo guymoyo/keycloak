@@ -174,6 +174,7 @@ public class OIDCWellKnownProvider implements WellKnownProvider {
 
         config.setBackchannelTokenDeliveryModesSupported(DEFAULT_BACKCHANNEL_TOKEN_DELIVERY_MODES_SUPPORTED);
         config.setBackchannelAuthenticationEndpoint(CibaGrantType.authorizationUrl(backendUriInfo.getBaseUriBuilder()).build(realm.getName()).toString());
+        config.setBackchannelAuthenticationRequestSigningAlgValuesSupported(getSupportedClientSigningAlgorithms(true));
 
         return config;
     }

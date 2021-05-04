@@ -173,6 +173,7 @@ public class OIDCWellKnownProviderTest extends AbstractKeycloakTest {
             assertEquals(oidcConfig.getBackchannelAuthenticationEndpoint(), oauth.getBackchannelAuthenticationUrl());
             assertContains(oidcConfig.getGrantTypesSupported(), OAuth2Constants.CIBA_GRANT_TYPE);
             Assert.assertNames(oidcConfig.getBackchannelTokenDeliveryModesSupported(), "poll");
+            Assert.assertNames(oidcConfig.getBackchannelAuthenticationRequestSigningAlgValuesSupported(), "none", Algorithm.PS256, Algorithm.PS384, Algorithm.PS512, Algorithm.RS256, Algorithm.RS384, Algorithm.RS512, Algorithm.ES256, Algorithm.ES384, Algorithm.ES512, Algorithm.HS256, Algorithm.HS384, Algorithm.HS512);
 
             Assert.assertTrue(oidcConfig.getBackchannelLogoutSupported());
             Assert.assertTrue(oidcConfig.getBackchannelLogoutSessionSupported());
