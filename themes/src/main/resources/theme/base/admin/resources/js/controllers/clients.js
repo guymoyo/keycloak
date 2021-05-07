@@ -1119,6 +1119,10 @@ module.controller('ClientDetailCtrl', function($scope, realm, client, flows, $ro
     $scope.clientOfflineSessionIdleTimeout = TimeUnit2.asUnit(client.attributes['client.offline.session.idle.timeout']);
     $scope.clientOfflineSessionMaxLifespan = TimeUnit2.asUnit(client.attributes['client.offline.session.max.lifespan']);
 
+    // FAPI 2.0 PAR request.
+    $scope.requirePushedAuthorizationRequests = false;
+    $scope.requestUriLifespan = TimeUnit2.asUnit(client.attributes['request.uri.lifespan']);
+
     if(client.origin) {
         if ($scope.access.viewRealm) {
             Components.get({realm: realm.realm, componentId: client.origin}, function (link) {
@@ -1288,6 +1292,15 @@ module.controller('ClientDetailCtrl', function($scope, realm, client, flows, $ro
                $scope.tlsClientCertificateBoundAccessTokens = false;
            }
        }
+
+        // FAPI 2.0 PAR request.
+        if ($scope.client.attributes["require.pushed.authorization.requests"]) {
+            if ($scope.client.attributes["require.pushed.authorization.requests"] == "true") {
+                $scope.requirePushedAuthorizationRequests = true;
+            } else {
+                $scope.requirePushedAuthorizationRequests = false;
+            }
+        }
 
         var useRefreshToken = $scope.client.attributes["client_credentials.use_refresh_token"];
         if (useRefreshToken === "true") {
@@ -1467,6 +1480,14 @@ module.controller('ClientDetailCtrl', function($scope, realm, client, flows, $ro
             return true;
         }
         return false;
+    }
+
+    $scope.updateRequestUriLifespan = function() {
+        if ($scope.requestUriLifespan.time) {
+            $scope.clientEdit.attributes['request.uri.lifespan'] = $scope.requestUriLifespan.toSeconds();
+        } else {
+            $scope.clientEdit.attributes['request.uri.lifespan'] = null;
+        }
     }
 
     $scope.updateTimeouts = function() {
@@ -1670,6 +1691,13 @@ module.controller('ClientDetailCtrl', function($scope, realm, client, flows, $ro
             $scope.clientEdit.attributes["tls.client.certificate.bound.access.tokens"] = "true";
         } else {
             $scope.clientEdit.attributes["tls.client.certificate.bound.access.tokens"] = "false";
+        }
+
+        // FAPI 2.0 PAR request.
+        if ($scope.requirePushedAuthorizationRequests == true) {
+            $scope.clientEdit.attributes["require.pushed.authorization.requests"] = "true";
+        } else {
+            $scope.clientEdit.attributes["require.pushed.authorization.requests"] = "false";
         }
 
         // KEYCLOAK-9551 Client Credentials Grant generates refresh token

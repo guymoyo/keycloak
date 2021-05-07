@@ -8,9 +8,12 @@ import org.keycloak.protocol.oidc.endpoints.ParEndpoint;
 import org.keycloak.services.resource.RealmResourceProvider;
 import org.keycloak.services.resource.RealmResourceProviderFactory;
 
+import javax.ws.rs.Path;
+
 public class ParEndpointFactory implements RealmResourceProviderFactory {
 
     @Override
+    @Path("/par")
     public RealmResourceProvider create(KeycloakSession session) {
         ParEndpoint provider = new ParEndpoint(session);
         ResteasyProviderFactory.getInstance().injectProperties(provider);

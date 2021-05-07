@@ -220,6 +220,25 @@ public class OIDCAdvancedConfigWrapper {
         setAttribute(OIDCConfigAttributes.BACKCHANNEL_LOGOUT_REVOKE_OFFLINE_TOKENS, val);
     }
 
+    public boolean getRequirePushedAuthorizationRequests() {
+        String val = getAttribute(OIDCConfigAttributes.REQUIRE_PUSHED_AUTHORIZATION_REQUESTS, "false");
+        return Boolean.parseBoolean(val);
+    }
+
+    public void setRequirePushedAuthorizationRequests(boolean enable) {
+        String val =  String.valueOf(enable);
+        setAttribute(OIDCConfigAttributes.REQUIRE_PUSHED_AUTHORIZATION_REQUESTS, val);
+    }
+
+    public Integer getRequestUriLifespan() {
+        String val = getAttribute(OIDCConfigAttributes.REQUEST_URI_LIFESPAN, "60");
+        return Integer.valueOf(val);
+    }
+
+    public void setRequestUriLifespan(String val) {
+        setAttribute(OIDCConfigAttributes.REQUEST_URI_LIFESPAN, val);
+    }
+
     private String getAttribute(String attrKey) {
         if (clientModel != null) {
             return clientModel.getAttribute(attrKey);

@@ -1,28 +1,33 @@
 package org.keycloak.protocol.par;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class ParResponse {
 
-    private String request_uri;
-    private String expires_in;
+    @JsonProperty("request_uri")
+    private String requestUri;
+
+    @JsonProperty("expires_in")
+    private String expiresIn;
 
     public ParResponse(String requestUri, String expiresIn) {
-        this.request_uri = requestUri;
-        this.expires_in = expiresIn;
+        this.requestUri = requestUri;
+        this.expiresIn = expiresIn;
     }
 
     public String getRequestUri() {
-        return request_uri;
+        return requestUri;
     }
 
     public void setRequestUri(String requestUri) {
-        this.request_uri = requestUri;
+        this.requestUri = requestUri;
     }
 
     public String getExpiresIn() {
-        return expires_in;
+        return expiresIn;
     }
 
     public void setExpiresIn(String expiresIn) {
-        this.expires_in = expiresIn;
+        this.expiresIn = expiresIn;
     }
 }

@@ -127,6 +127,18 @@ public class DescriptionConverter {
             else configWrapper.setUseMtlsHoKToken(false);
         }
 
+        // FAPI 2.0 PAR request.
+        Boolean requirePushedAuthorizationRequests = clientOIDC.getRequirePushedAuthorizationRequests();
+        if (requirePushedAuthorizationRequests != null) {
+            configWrapper.setRequirePushedAuthorizationRequests(requirePushedAuthorizationRequests);
+        }
+
+        // FAPI 2.0 PAR request.
+        Integer requestUriLifespan = clientOIDC.getRequestUriLifespan();
+        if (requestUriLifespan != null) {
+            configWrapper.setRequestUriLifespan(requestUriLifespan.toString());
+        }
+
         if (clientOIDC.getTlsClientAuthSubjectDn() != null) {
             configWrapper.setTlsClientAuthSubjectDn(clientOIDC.getTlsClientAuthSubjectDn());
         }
