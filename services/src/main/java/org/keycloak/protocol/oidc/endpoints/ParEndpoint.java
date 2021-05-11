@@ -1,3 +1,20 @@
+/*
+ * Copyright 2021 Red Hat, Inc. and/or its affiliates
+ * and other contributors as indicated by the @author tags.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.keycloak.protocol.oidc.endpoints;
 
 import org.jboss.logging.Logger;
@@ -5,15 +22,12 @@ import org.jboss.resteasy.spi.HttpRequest;
 import org.jboss.resteasy.spi.HttpResponse;
 import org.keycloak.OAuthErrorException;
 import org.keycloak.common.ClientConnection;
+import org.keycloak.common.util.Base64Url;
 import org.keycloak.events.Errors;
 import org.keycloak.events.EventBuilder;
 import org.keycloak.events.EventType;
-import org.keycloak.models.KeycloakContext;
-import org.keycloak.models.KeycloakSession;
-import org.keycloak.models.PushedAuthzRequestStoreProvider;
-import org.keycloak.models.RealmModel;
-import org.keycloak.models.ClientModel;
-import org.keycloak.protocol.oidc.OIDCAdvancedConfigWrapper;
+import org.keycloak.models.*;
+import org.keycloak.models.utils.KeycloakModelUtils;
 import org.keycloak.protocol.oidc.utils.AuthorizeClientUtil;
 import org.keycloak.protocol.par.ParResponse;
 import org.keycloak.representations.idm.OAuth2ErrorRepresentation;
@@ -24,6 +38,7 @@ import org.keycloak.services.resources.Cors;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -35,7 +50,7 @@ import java.util.UUID;
 import static org.keycloak.protocol.oidc.OIDCLoginProtocol.REQUEST_URI_PARAM;
 
 /**
- * FAPI 2.0 Pushed Authorization Request endpoint
+ * Pushed Authorization Request endpoint
  */
 public class ParEndpoint implements RealmResourceProvider {
 
@@ -66,6 +81,7 @@ public class ParEndpoint implements RealmResourceProvider {
 
     @POST
     @Consumes({MediaType.APPLICATION_FORM_URLENCODED})
+    @Produces(MediaType.APPLICATION_JSON)
     public Response handlePar() {
 
         LOG.info("Received PAR object");
@@ -82,22 +98,31 @@ public class ParEndpoint implements RealmResourceProvider {
         checkRealm();
         authorizeClient();
 
-        Map<String, String> params = new HashMap<>();
-        String requestUri = String.format(REQUEST_URI_TEMPLATE, UUID.randomUUID().toString());
 
-        int expiresIn = OIDCAdvancedConfigWrapper.fromClientModel(session.getContext().getClient()).getRequestUriLifespan();
+        ClientModel clientModel = session.getContext().getClient();
 
-        request.getFormParameters().forEach((k, v) -> params.put(k, String.valueOf(v)));
+        if (Boolean.parseBoolean(clientModel.getAttribute(ParConfig.REQUIRE_PUSHED_AUTHORIZATION_REQUESTS))) {
+            Map<String, String> params = new HashMap<>();
+            String requestUri = String.format(REQUEST_URI_TEMPLATE, Base64Url.encode(KeycloakModelUtils.generateSecret()));
 
-        PushedAuthzRequestStoreProvider parStore = session.getProvider(PushedAuthzRequestStoreProvider.class,
-                                                                       "par");
-        parStore.put("grantId", expiresIn, params);
+            int expiresIn = clientModel.getAttribute(ParConfig.REQUEST_URI_LIFESPAN) == null
+                                    ? 60
+                                    : Integer.parseInt(clientModel.getAttribute(ParConfig.REQUEST_URI_LIFESPAN));
 
-        ParResponse parResponse = new ParResponse(requestUri, String.valueOf(expiresIn));
-        return Response.status(Response.Status.CREATED)
-                       .entity(parResponse)
-                       .type(MediaType.APPLICATION_JSON_TYPE)
-                       .build();
+            request.getFormParameters().forEach((k, v) -> params.put(k, String.valueOf(v)));
+
+            PushedAuthzRequestStoreProvider parStore = session.getProvider(PushedAuthzRequestStoreProvider.class,
+                                                                           "par");
+            parStore.put("grantId", expiresIn, params);
+
+            ParResponse parResponse = new ParResponse(requestUri, String.valueOf(expiresIn));
+            return Response.status(Response.Status.CREATED)
+                           .entity(parResponse)
+                           .type(MediaType.APPLICATION_JSON_TYPE)
+                           .build();
+        }
+
+        return errorResponse(Response.Status.BAD_REQUEST.getStatusCode(), "invalid_request", "Pushed Authorization Request is not allowed");
     }
 
     @Override

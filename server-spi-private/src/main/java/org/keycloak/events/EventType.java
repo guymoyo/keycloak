@@ -137,7 +137,7 @@ public enum EventType {
     DELETE_ACCOUNT(true),
     DELETE_ACCOUNT_ERROR(true),
 
-    // FAPI 2.0 PAR request.
+    // PAR request.
     PUSHED_AUTHORIZATION_REQUEST(false),
     PUSHED_AUTHORIZATION_REQUEST_ERROR(false);
 

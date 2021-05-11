@@ -62,12 +62,6 @@ public final class OIDCConfigAttributes {
 
     public static final String USE_REFRESH_TOKEN_FOR_CLIENT_CREDENTIALS_GRANT = "client_credentials.use_refresh_token";
 
-    // FAPI 2.0 PAR request.
-    public static final String REQUIRE_PUSHED_AUTHORIZATION_REQUESTS = "require.pushed.authorization.requests";
-
-    // FAPI 2.0 PAR request.
-    public static final String REQUEST_URI_LIFESPAN = "request.uri.lifespan";
-
     private OIDCConfigAttributes() {
     }
 

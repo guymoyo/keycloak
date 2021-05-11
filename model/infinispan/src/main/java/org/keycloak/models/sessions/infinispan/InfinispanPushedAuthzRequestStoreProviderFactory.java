@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Red Hat, Inc. and/or its affiliates
+ * Copyright 2021 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,23 +27,21 @@ import org.keycloak.models.sessions.infinispan.entities.ActionTokenValueEntity;
 
 import java.util.function.Supplier;
 
-public class PushedAuthzRequestStoreProviderImplFactory implements PushedAuthzRequestStoreProviderFactory {
+public class InfinispanPushedAuthzRequestStoreProviderFactory implements PushedAuthzRequestStoreProviderFactory {
 
     // Reuse "actionTokens" infinispan cache for now
-    // TODO: is it OK to use String as key????
     private volatile Supplier<BasicCache<String, ActionTokenValueEntity>> codeCache;
 
     @Override
     public PushedAuthzRequestStoreProvider create(KeycloakSession session) {
         lazyInit(session);
-        return new PushedAuthzRequestStoreProviderImpl(session, codeCache);
+        return new InfinispanPushedAuthzRequestStoreProvider(session, codeCache);
     }
 
     private void lazyInit(KeycloakSession session) {
         if (codeCache == null) {
             synchronized (this) {
                 if (codeCache == null) {
-                    // TODO: which factory to use????
                     this.codeCache = InfinispanSingleUseTokenStoreProviderFactory.getActionTokenCache(session);
                 }
             }

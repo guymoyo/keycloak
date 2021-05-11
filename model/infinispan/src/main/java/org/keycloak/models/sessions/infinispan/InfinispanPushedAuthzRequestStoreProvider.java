@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Red Hat, Inc. and/or its affiliates
+ * Copyright 2021 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,13 +31,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 
-public class PushedAuthzRequestStoreProviderImpl implements PushedAuthzRequestStoreProvider {
+public class InfinispanPushedAuthzRequestStoreProvider implements PushedAuthzRequestStoreProvider {
 
-    public static final Logger logger = Logger.getLogger(PushedAuthzRequestStoreProviderImpl.class);
+    public static final Logger logger = Logger.getLogger(InfinispanPushedAuthzRequestStoreProvider.class);
 
     private final Supplier<BasicCache<String, ActionTokenValueEntity>> parDataCache;
 
-    public PushedAuthzRequestStoreProviderImpl(KeycloakSession session, Supplier<BasicCache<String, ActionTokenValueEntity>> actionKeyCache) {
+    public InfinispanPushedAuthzRequestStoreProvider(KeycloakSession session, Supplier<BasicCache<String, ActionTokenValueEntity>> actionKeyCache) {
         this.parDataCache = actionKeyCache;
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Red Hat, Inc. and/or its affiliates
+ * Copyright 2021 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -142,7 +142,7 @@ public class OIDCConfigurationRepresentation {
     @JsonProperty("backchannel_logout_session_supported")
     private Boolean backchannelLogoutSessionSupported;
 
-    // These 3 parameters below are provided for FAPI 2.0 PAR request.
+    // These 3 parameters below are provided for PAR request.
     @JsonProperty("require_pushed_authorization_requests")
     private Boolean requirePushedAuthorizationRequests;
 

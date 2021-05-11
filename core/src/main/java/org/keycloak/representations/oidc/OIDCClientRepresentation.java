@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Red Hat, Inc. and/or its affiliates
+ * Copyright 2021 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -125,10 +125,10 @@ public class OIDCClientRepresentation {
     
     private Boolean backchannel_logout_revoke_offline_tokens;
 
-    // FAPI 2.0 PAR request.
+    // PAR request.
     private Boolean require_pushed_authorization_requests;
 
-    // FAPI 2.0 PAR request.
+    // PAR request.
     private Integer request_uri_lifespan;
 
     public List<String> getRedirectUris() {

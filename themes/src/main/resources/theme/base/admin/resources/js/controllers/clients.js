@@ -1119,7 +1119,7 @@ module.controller('ClientDetailCtrl', function($scope, realm, client, flows, $ro
     $scope.clientOfflineSessionIdleTimeout = TimeUnit2.asUnit(client.attributes['client.offline.session.idle.timeout']);
     $scope.clientOfflineSessionMaxLifespan = TimeUnit2.asUnit(client.attributes['client.offline.session.max.lifespan']);
 
-    // FAPI 2.0 PAR request.
+    // PAR request.
     $scope.requirePushedAuthorizationRequests = false;
     $scope.requestUriLifespan = TimeUnit2.asUnit(client.attributes['request.uri.lifespan']);
 
@@ -1293,7 +1293,7 @@ module.controller('ClientDetailCtrl', function($scope, realm, client, flows, $ro
            }
        }
 
-        // FAPI 2.0 PAR request.
+        // PAR request.
         if ($scope.client.attributes["require.pushed.authorization.requests"]) {
             if ($scope.client.attributes["require.pushed.authorization.requests"] == "true") {
                 $scope.requirePushedAuthorizationRequests = true;
@@ -1693,7 +1693,7 @@ module.controller('ClientDetailCtrl', function($scope, realm, client, flows, $ro
             $scope.clientEdit.attributes["tls.client.certificate.bound.access.tokens"] = "false";
         }
 
-        // FAPI 2.0 PAR request.
+        // PAR request.
         if ($scope.requirePushedAuthorizationRequests == true) {
             $scope.clientEdit.attributes["require.pushed.authorization.requests"] = "true";
         } else {
