@@ -32,7 +32,6 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.protocol.oidc.endpoints.TokenEndpoint;
 import org.keycloak.protocol.oidc.representations.OIDCConfigurationRepresentation;
 import org.keycloak.protocol.oidc.utils.OIDCResponseType;
-import org.keycloak.protocol.par.ParEndpointFactory;
 import org.keycloak.provider.Provider;
 import org.keycloak.provider.ProviderFactory;
 import org.keycloak.representations.IDToken;
@@ -164,8 +163,6 @@ public class OIDCWellKnownProvider implements WellKnownProvider {
         config.setPushedAuthorizationRequestEndpoint(RealmsResource.realmBaseUrl(backendUriInfo)
                                                              .clone()
                                                              .build(realm.getName()).toString() + "/par");
-        config.setRequestUriLifespan(60);
-
         return config;
     }
 

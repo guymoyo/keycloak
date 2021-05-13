@@ -26,13 +26,19 @@ import org.keycloak.common.util.Base64Url;
 import org.keycloak.events.Errors;
 import org.keycloak.events.EventBuilder;
 import org.keycloak.events.EventType;
-import org.keycloak.models.*;
+import org.keycloak.models.ClientModel;
+import org.keycloak.models.KeycloakContext;
+import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.ParConfig;
+import org.keycloak.models.RealmModel;
+import org.keycloak.models.PushedAuthzRequestStoreProvider;
 import org.keycloak.models.utils.KeycloakModelUtils;
 import org.keycloak.protocol.oidc.utils.AuthorizeClientUtil;
 import org.keycloak.protocol.par.ParResponse;
 import org.keycloak.representations.idm.OAuth2ErrorRepresentation;
 import org.keycloak.services.CorsErrorResponseException;
 import org.keycloak.services.ErrorResponseException;
+import org.keycloak.services.ParValidationService;
 import org.keycloak.services.resource.RealmResourceProvider;
 import org.keycloak.services.resources.Cors;
 
@@ -45,7 +51,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import static org.keycloak.protocol.oidc.OIDCLoginProtocol.REQUEST_URI_PARAM;
 
@@ -56,6 +61,7 @@ public class ParEndpoint implements RealmResourceProvider {
 
     private static final Logger LOG = Logger.getLogger(ParEndpoint.class);
     private static final String REQUEST_URI_TEMPLATE = "urn:ietf:params:oauth:request_uri:%s";
+    private static final int DEFAULT_REQUEST_URI_LIFESPAN = 60;
 
     private KeycloakSession session;
 
@@ -87,7 +93,7 @@ public class ParEndpoint implements RealmResourceProvider {
         LOG.info("Received PAR object");
 
         if (request.getFormParameters().containsKey(REQUEST_URI_PARAM)) {
-            return errorResponse(Response.Status.BAD_REQUEST.getStatusCode(), "invalid_request", "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed");
+            return errorResponse(Response.Status.BAD_REQUEST.getStatusCode(), OAuthErrorException.INVALID_REQUEST, "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed");
         }
 
         KeycloakContext context = session.getContext();
@@ -98,15 +104,22 @@ public class ParEndpoint implements RealmResourceProvider {
         checkRealm();
         authorizeClient();
 
-
         ClientModel clientModel = session.getContext().getClient();
+
+        ParValidationService parValidationService = new ParValidationService(session, event);
+
+        Response validationResponse = parValidationService.validateParRequest(request, clientModel);
+
+        if (validationResponse != null) {
+            return validationResponse;
+        }
 
         if (Boolean.parseBoolean(clientModel.getAttribute(ParConfig.REQUIRE_PUSHED_AUTHORIZATION_REQUESTS))) {
             Map<String, String> params = new HashMap<>();
             String requestUri = String.format(REQUEST_URI_TEMPLATE, Base64Url.encode(KeycloakModelUtils.generateSecret()));
 
             int expiresIn = clientModel.getAttribute(ParConfig.REQUEST_URI_LIFESPAN) == null
-                                    ? 60
+                                    ? DEFAULT_REQUEST_URI_LIFESPAN
                                     : Integer.parseInt(clientModel.getAttribute(ParConfig.REQUEST_URI_LIFESPAN));
 
             request.getFormParameters().forEach((k, v) -> params.put(k, String.valueOf(v)));
@@ -122,7 +135,7 @@ public class ParEndpoint implements RealmResourceProvider {
                            .build();
         }
 
-        return errorResponse(Response.Status.BAD_REQUEST.getStatusCode(), "invalid_request", "Pushed Authorization Request is not allowed");
+        return errorResponse(Response.Status.BAD_REQUEST.getStatusCode(), OAuthErrorException.INVALID_REQUEST, "Pushed Authorization Request is not allowed");
     }
 
     @Override
