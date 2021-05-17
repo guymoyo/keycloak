@@ -612,6 +612,18 @@ public class RealmAdapter implements CachedRealmModel {
     }
 
     @Override
+    public int getRequestUriLifespan() {
+        if (isUpdated()) return updated.getRequestUriLifespan();
+        return cached.getRequestUriLifespan();
+    }
+
+    @Override
+    public void setRequestUriLifespan(int seconds) {
+        getDelegateForUpdate();
+        updated.setRequestUriLifespan(seconds);
+    }
+
+    @Override
     public int getActionTokenGeneratedByUserLifespan() {
         if (isUpdated()) return updated.getActionTokenGeneratedByUserLifespan();
         return cached.getActionTokenGeneratedByUserLifespan();

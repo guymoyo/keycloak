@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.keycloak.protocol.oidc.endpoints;
+package org.keycloak.protocol.oidc.par.endpoints;
 
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.spi.HttpRequest;
@@ -29,16 +29,16 @@ import org.keycloak.events.EventType;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.KeycloakContext;
 import org.keycloak.models.KeycloakSession;
-import org.keycloak.models.ParConfig;
+import org.keycloak.protocol.oidc.par.ParConfig;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.PushedAuthzRequestStoreProvider;
 import org.keycloak.models.utils.KeycloakModelUtils;
+import org.keycloak.protocol.oidc.par.ParValidationService;
 import org.keycloak.protocol.oidc.utils.AuthorizeClientUtil;
-import org.keycloak.protocol.par.ParResponse;
+import org.keycloak.protocol.oidc.par.ParResponse;
 import org.keycloak.representations.idm.OAuth2ErrorRepresentation;
 import org.keycloak.services.CorsErrorResponseException;
 import org.keycloak.services.ErrorResponseException;
-import org.keycloak.services.ParValidationService;
 import org.keycloak.services.resource.RealmResourceProvider;
 import org.keycloak.services.resources.Cors;
 
@@ -90,11 +90,7 @@ public class ParEndpoint implements RealmResourceProvider {
     @Produces(MediaType.APPLICATION_JSON)
     public Response handlePar() {
 
-        LOG.info("Received PAR object");
-
-        if (request.getFormParameters().containsKey(REQUEST_URI_PARAM)) {
-            return errorResponse(Response.Status.BAD_REQUEST.getStatusCode(), OAuthErrorException.INVALID_REQUEST, "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed");
-        }
+        LOG.debug("Received PAR object");
 
         KeycloakContext context = session.getContext();
         realm = context.getRealm();
@@ -118,9 +114,7 @@ public class ParEndpoint implements RealmResourceProvider {
             Map<String, String> params = new HashMap<>();
             String requestUri = String.format(REQUEST_URI_TEMPLATE, Base64Url.encode(KeycloakModelUtils.generateSecret()));
 
-            int expiresIn = clientModel.getAttribute(ParConfig.REQUEST_URI_LIFESPAN) == null
-                                    ? DEFAULT_REQUEST_URI_LIFESPAN
-                                    : Integer.parseInt(clientModel.getAttribute(ParConfig.REQUEST_URI_LIFESPAN));
+            int expiresIn = realm.getAttribute("requestUriLifespan", 60);
 
             request.getFormParameters().forEach((k, v) -> params.put(k, String.valueOf(v)));
 

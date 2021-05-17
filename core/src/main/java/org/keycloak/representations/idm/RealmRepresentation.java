@@ -59,6 +59,7 @@ public class RealmRepresentation {
     protected Integer accessCodeLifespanLogin;
     protected Integer actionTokenGeneratedByAdminLifespan;
     protected Integer actionTokenGeneratedByUserLifespan;
+    protected Integer requestUriLifespan;
     protected Boolean enabled;
     protected String sslRequired;
     @Deprecated
@@ -482,6 +483,14 @@ public class RealmRepresentation {
 
     public void setActionTokenGeneratedByUserLifespan(Integer actionTokenGeneratedByUserLifespan) {
         this.actionTokenGeneratedByUserLifespan = actionTokenGeneratedByUserLifespan;
+    }
+
+    public Integer getRequestUriLifespan() {
+        return requestUriLifespan;
+    }
+
+    public void setRequestUriLifespan(Integer requestUriLifespan) {
+        this.requestUriLifespan = requestUriLifespan;
     }
 
     @Deprecated

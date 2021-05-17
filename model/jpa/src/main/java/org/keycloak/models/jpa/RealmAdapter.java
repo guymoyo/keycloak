@@ -646,6 +646,16 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
             setAttribute(RealmAttributes.ACTION_TOKEN_GENERATED_BY_USER_LIFESPAN + "." + actionTokenId, actionTokenGeneratedByUserLifespan);
     }
 
+    @Override
+    public int getRequestUriLifespan() {
+        return getAttribute(RealmAttributes.REQUEST_URI_LIFESPAN, 60);
+    }
+
+    @Override
+    public void setRequestUriLifespan(int seconds) {
+        setAttribute(RealmAttributes.REQUEST_URI_LIFESPAN, seconds);
+    }
+
     protected RequiredCredentialModel initRequiredCredentialModel(String type) {
         RequiredCredentialModel model = RequiredCredentialModel.BUILT_IN.get(type);
         if (model == null) {

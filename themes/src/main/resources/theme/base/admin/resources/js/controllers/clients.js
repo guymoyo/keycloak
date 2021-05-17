@@ -1121,7 +1121,6 @@ module.controller('ClientDetailCtrl', function($scope, realm, client, flows, $ro
 
     // PAR request.
     $scope.requirePushedAuthorizationRequests = false;
-    $scope.requestUriLifespan = TimeUnit2.asUnit(client.attributes['request.uri.lifespan']);
 
     if(client.origin) {
         if ($scope.access.viewRealm) {
@@ -1480,14 +1479,6 @@ module.controller('ClientDetailCtrl', function($scope, realm, client, flows, $ro
             return true;
         }
         return false;
-    }
-
-    $scope.updateRequestUriLifespan = function() {
-        if ($scope.requestUriLifespan.time) {
-            $scope.clientEdit.attributes['request.uri.lifespan'] = $scope.requestUriLifespan.toSeconds();
-        } else {
-            $scope.clientEdit.attributes['request.uri.lifespan'] = null;
-        }
     }
 
     $scope.updateTimeouts = function() {

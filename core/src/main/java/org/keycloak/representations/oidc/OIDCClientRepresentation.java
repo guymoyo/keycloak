@@ -128,9 +128,6 @@ public class OIDCClientRepresentation {
     // PAR request.
     private Boolean require_pushed_authorization_requests;
 
-    // PAR request.
-    private Integer request_uri_lifespan;
-
     public List<String> getRedirectUris() {
         return redirect_uris;
     }
@@ -499,13 +496,5 @@ public class OIDCClientRepresentation {
 
     public void setRequirePushedAuthorizationRequests(Boolean require_pushed_authorization_requests) {
         this.require_pushed_authorization_requests = require_pushed_authorization_requests;
-    }
-
-    public Integer getRequestUriLifespan() {
-        return request_uri_lifespan;
-    }
-
-    public void setRequestUriLifespan(Integer request_uri_lifespan) {
-        this.request_uri_lifespan = request_uri_lifespan;
     }
 }

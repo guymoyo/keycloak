@@ -1,4 +1,4 @@
-package org.keycloak.protocol.par;
+package org.keycloak.protocol.oidc.par;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

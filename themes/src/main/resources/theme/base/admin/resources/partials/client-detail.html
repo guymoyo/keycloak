@@ -692,21 +692,6 @@
                 <kc-tooltip>{{:: 'require-pushed-authorization-requests.tooltip' | translate}}</kc-tooltip>
             </div>
 
-            <div class="form-group" data-ng-show="protocol == 'openid-connect' && requirePushedAuthorizationRequests">
-                <label class="col-md-2 control-label" for="requestUriLifespan">{{:: 'request-uri-lifespan' | translate}}</label>
-                <div class="col-md-6 time-selector">
-                    <input class="form-control" type="number" min="0"
-                           max="600" data-ng-model="requestUriLifespan.time"
-                           id="requestUriLifespan" name="requestUriLifespan"
-                           data-ng-change="updateRequestUriLifespan()"/>
-                    <select class="form-control" name="requestUriLifespanUnit" data-ng-model="requestUriLifespan.unit" data-ng-change="updateRequestUriLifespan()">
-                        <option value="Minutes">{{:: 'minutes' | translate}}</option>
-                        <option value="Hours">{{:: 'hours' | translate}}</option>
-                    </select>
-                </div>
-                <kc-tooltip>{{:: 'request-uri-lifespan.tooltip' | translate}}</kc-tooltip>
-            </div>
-
         </fieldset>
 
         <fieldset>

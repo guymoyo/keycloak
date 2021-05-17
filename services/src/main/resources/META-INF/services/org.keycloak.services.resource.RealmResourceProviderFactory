@@ -1,1 +1,1 @@
-org.keycloak.protocol.par.ParEndpointFactory
+org.keycloak.protocol.oidc.par.endpoints.ParEndpointFactory

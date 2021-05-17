@@ -1,4 +1,4 @@
-package org.keycloak.services;
+package org.keycloak.protocol.oidc.par;
 
 import org.jboss.resteasy.spi.HttpRequest;
 import org.keycloak.OAuth2Constants;
@@ -12,22 +12,24 @@ import org.keycloak.protocol.oidc.OIDCLoginProtocol;
 import org.keycloak.protocol.oidc.TokenManager;
 import org.keycloak.protocol.oidc.endpoints.request.AuthorizationEndpointRequest;
 import org.keycloak.protocol.oidc.endpoints.request.AuthorizationEndpointRequestParserProcessor;
-import org.keycloak.protocol.oidc.utils.OIDCRedirectUriBuilder;
 import org.keycloak.protocol.oidc.utils.OIDCResponseMode;
 import org.keycloak.protocol.oidc.utils.OIDCResponseType;
 import org.keycloak.protocol.oidc.utils.RedirectUtils;
 import org.keycloak.representations.idm.OAuth2ErrorRepresentation;
+import org.keycloak.services.ErrorResponseException;
+import org.keycloak.services.ServicesLogger;
 import org.keycloak.util.TokenUtil;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
+import static org.keycloak.protocol.oidc.OIDCLoginProtocol.REQUEST_URI_PARAM;
 
 public class ParValidationService {
 
     private KeycloakSession session;
     private EventBuilder event;
     private AuthorizationEndpointRequest authorizationRequest;
-    private OIDCResponseMode parsedResponseMode;
     private String redirectUri;
 
     public ParValidationService(KeycloakSession session, EventBuilder event) {
@@ -36,6 +38,10 @@ public class ParValidationService {
     }
 
     public Response validateParRequest(HttpRequest request, ClientModel clientModel) {
+
+        if (request.getFormParameters().containsKey(REQUEST_URI_PARAM)) {
+            return errorResponse(Response.Status.BAD_REQUEST.getStatusCode(), OAuthErrorException.INVALID_REQUEST, "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed");
+        }
 
         authorizationRequest = AuthorizationEndpointRequestParserProcessor.parseRequest(event, session, clientModel, request.getFormParameters());
 
@@ -47,7 +53,7 @@ public class ParValidationService {
 
         if (authorizationRequest.getInvalidRequestMessage() != null) {
             event.error(Errors.INVALID_REQUEST);
-            return redirectErrorToClient(parsedResponseMode, Errors.INVALID_REQUEST, authorizationRequest.getInvalidRequestMessage());
+            throw throwErrorResponseException(Errors.INVALID_REQUEST, authorizationRequest.getInvalidRequestMessage(), Response.Status.BAD_REQUEST);
         }
 
         if (!TokenUtil.isOIDCRequest(authorizationRequest.getScope())) {
@@ -57,14 +63,13 @@ public class ParValidationService {
         if (!TokenManager.isValidScope(authorizationRequest.getScope(), clientModel)) {
             ServicesLogger.LOGGER.invalidParameter(OIDCLoginProtocol.SCOPE_PARAM);
             event.error(Errors.INVALID_REQUEST);
-            return redirectErrorToClient(parsedResponseMode, OAuthErrorException.INVALID_SCOPE, "Invalid scopes: " + authorizationRequest.getScope());
+            throw throwErrorResponseException(Errors.INVALID_REQUEST, "Invalid scopes: " + authorizationRequest.getScope(), Response.Status.BAD_REQUEST);
         }
 
         return null;
     }
 
-
-    public Response errorResponse(int status, String error, String errorDescription) {
+    private Response errorResponse(int status, String error, String errorDescription) {
         OAuth2ErrorRepresentation errorRep = new OAuth2ErrorRepresentation(error, errorDescription);
         return Response.status(status).entity(errorRep).type(MediaType.APPLICATION_JSON_TYPE).build();
     }
@@ -131,29 +136,12 @@ public class ParValidationService {
             return errorResponse(Response.Status.UNAUTHORIZED.getStatusCode(), OAuthErrorException.UNAUTHORIZED_CLIENT, "Client is not allowed to initiate browser login with given response_type. Implicit flow is disabled for the client.");
         }
 
-        this.parsedResponseMode = parsedResponseMode;
-
         return null;
     }
 
     private ErrorResponseException throwErrorResponseException(String error, String detail, Response.Status status) {
         this.event.detail("detail", detail).error(error);
         return new ErrorResponseException(error, detail, status);
-    }
-
-    private Response redirectErrorToClient(OIDCResponseMode responseMode, String error, String errorDescription) {
-        OIDCRedirectUriBuilder errorResponseBuilder = OIDCRedirectUriBuilder.fromUri(redirectUri, responseMode)
-                                                              .addParam(OAuth2Constants.ERROR, error);
-
-        if (errorDescription != null) {
-            errorResponseBuilder.addParam(OAuth2Constants.ERROR_DESCRIPTION, errorDescription);
-        }
-
-        if (authorizationRequest.getState() != null) {
-            errorResponseBuilder.addParam(OAuth2Constants.STATE, authorizationRequest.getState());
-        }
-
-        return errorResponseBuilder.build();
     }
 
 }

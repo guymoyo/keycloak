@@ -50,4 +50,7 @@ public interface RealmAttributes {
     String WEBAUTHN_POLICY_AVOID_SAME_AUTHENTICATOR_REGISTER = "webAuthnPolicyAvoidSameAuthenticatorRegister";
     String WEBAUTHN_POLICY_ACCEPTABLE_AAGUIDS = "webAuthnPolicyAcceptableAaguids";
 
+    // PAR request.
+    String REQUEST_URI_LIFESPAN = "requestUriLifespan";
+
 }
