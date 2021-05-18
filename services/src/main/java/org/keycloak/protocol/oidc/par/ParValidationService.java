@@ -83,7 +83,7 @@ public class ParValidationService {
         redirectUri = RedirectUtils.verifyRedirectUri(session, redirectUriParam, clientModel, isOIDCRequest);
         if (redirectUri == null) {
             event.error(Errors.INVALID_REDIRECT_URI);
-            throw throwErrorResponseException(Errors.INVALID_REQUEST, "Invalid parameter: redirect_uri.", Response.Status.BAD_REQUEST);
+            throw throwErrorResponseException(Errors.INVALID_REQUEST, "Invalid parameter: redirect_uri", Response.Status.BAD_REQUEST);
         }
     }
 

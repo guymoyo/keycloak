@@ -22,6 +22,7 @@ import org.jboss.resteasy.spi.HttpRequest;
 import org.jboss.resteasy.spi.HttpResponse;
 import org.keycloak.OAuthErrorException;
 import org.keycloak.common.ClientConnection;
+import org.keycloak.common.Profile;
 import org.keycloak.common.util.Base64Url;
 import org.keycloak.events.Errors;
 import org.keycloak.events.EventBuilder;
@@ -41,6 +42,7 @@ import org.keycloak.services.CorsErrorResponseException;
 import org.keycloak.services.ErrorResponseException;
 import org.keycloak.services.resource.RealmResourceProvider;
 import org.keycloak.services.resources.Cors;
+import org.keycloak.utils.ProfileHelper;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -89,6 +91,8 @@ public class ParEndpoint implements RealmResourceProvider {
     @Consumes({MediaType.APPLICATION_FORM_URLENCODED})
     @Produces(MediaType.APPLICATION_JSON)
     public Response handlePar() {
+
+        ProfileHelper.requireFeature(Profile.Feature.PAR);
 
         LOG.debug("Received PAR object");
 

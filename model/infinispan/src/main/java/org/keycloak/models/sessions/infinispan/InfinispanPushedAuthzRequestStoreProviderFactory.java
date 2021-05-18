@@ -19,15 +19,17 @@ package org.keycloak.models.sessions.infinispan;
 
 import org.infinispan.commons.api.BasicCache;
 import org.keycloak.Config;
+import org.keycloak.common.Profile;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
 import org.keycloak.models.PushedAuthzRequestStoreProvider;
 import org.keycloak.models.PushedAuthzRequestStoreProviderFactory;
 import org.keycloak.models.sessions.infinispan.entities.ActionTokenValueEntity;
+import org.keycloak.provider.EnvironmentDependentProviderFactory;
 
 import java.util.function.Supplier;
 
-public class InfinispanPushedAuthzRequestStoreProviderFactory implements PushedAuthzRequestStoreProviderFactory {
+public class InfinispanPushedAuthzRequestStoreProviderFactory implements PushedAuthzRequestStoreProviderFactory, EnvironmentDependentProviderFactory {
 
     // Reuse "actionTokens" infinispan cache for now
     private volatile Supplier<BasicCache<String, ActionTokenValueEntity>> codeCache;
@@ -66,5 +68,10 @@ public class InfinispanPushedAuthzRequestStoreProviderFactory implements PushedA
     @Override
     public String getId() {
         return "par";
+    }
+
+    @Override
+    public boolean isSupported() {
+        return Profile.isFeatureEnabled(Profile.Feature.PAR);
     }
 }
