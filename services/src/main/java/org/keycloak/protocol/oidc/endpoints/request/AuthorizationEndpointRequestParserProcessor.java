@@ -64,13 +64,13 @@ public class AuthorizationEndpointRequestParserProcessor {
             String requestObjectRequired = OIDCAdvancedConfigWrapper.fromClientModel(client).getRequestObjectRequired();
 
             if (OIDCConfigAttributes.REQUEST_OBJECT_REQUIRED_REQUEST_OR_REQUEST_URI.equals(requestObjectRequired)
-                    && requestParam == null && requestUriParam == null) {
+                        && requestParam == null && requestUriParam == null) {
                 throw new RuntimeException("Client is required to use 'request' or 'request_uri' parameter.");
             } else if (OIDCConfigAttributes.REQUEST_OBJECT_REQUIRED_REQUEST.equals(requestObjectRequired)
-                    && requestParam == null) {
+                               && requestParam == null) {
                 throw new RuntimeException("Client is required to use 'request' parameter.");
             } else if (OIDCConfigAttributes.REQUEST_OBJECT_REQUIRED_REQUEST_URI.equals(requestObjectRequired)
-                    && requestUriParam == null) {
+                               && requestUriParam == null) {
                 throw new RuntimeException("Client is required to use 'request_uri' parameter.");
             }
 
@@ -107,6 +107,16 @@ public class AuthorizationEndpointRequestParserProcessor {
             event.error(Errors.INVALID_REQUEST);
             throw new ErrorPageException(session, Response.Status.BAD_REQUEST, Messages.INVALID_REQUEST);
         }
+    }
+
+    public RequestUriType getRequestUriType(String requestUri) {
+        if (requestUri == null) {
+            throw new RuntimeException("'request_uri' parameter is null");
+        }
+
+        return requestUri.toLowerCase().startsWith("urn:ietf")
+                       ? RequestUriType.PAR
+                       : RequestUriType.REQUEST_OBJECT;
     }
 
 }

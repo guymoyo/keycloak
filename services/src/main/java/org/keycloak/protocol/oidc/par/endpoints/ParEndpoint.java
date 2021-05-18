@@ -54,7 +54,6 @@ import javax.ws.rs.core.Response;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.keycloak.protocol.oidc.OIDCLoginProtocol.REQUEST_URI_PARAM;
 
 /**
  * Pushed Authorization Request endpoint
@@ -63,7 +62,6 @@ public class ParEndpoint implements RealmResourceProvider {
 
     private static final Logger LOG = Logger.getLogger(ParEndpoint.class);
     private static final String REQUEST_URI_TEMPLATE = "urn:ietf:params:oauth:request_uri:%s";
-    private static final int DEFAULT_REQUEST_URI_LIFESPAN = 60;
 
     private KeycloakSession session;
 
