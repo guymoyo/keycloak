@@ -50,6 +50,12 @@ public class AuthorizationEndpointRequest {
 
     String acr;
 
+    String grantId;
+
+    public String getGrantId() {
+        return grantId;
+    }
+
     public String getAcr() {
         return acr;
     }

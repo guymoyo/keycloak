@@ -90,6 +90,7 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.net.URLEncoder;
 import java.net.URLDecoder;
 import java.util.Collections;
@@ -677,7 +678,7 @@ public class AuthenticationManager {
 
         return response;
     }
-    
+
     public static void finishUnconfirmedUserSession(KeycloakSession session, RealmModel realm, UserSessionModel userSessionModel) {
         if (userSessionModel.getAuthenticatedClientSessions().values().stream().anyMatch(cs -> !CommonClientSessionModel.Action.LOGGED_OUT.name().equals(cs.getAction()))) {
             logger.warnf("UserSession with id %s is removed while there are still some user sessions that are not logged out properly.", userSessionModel.getId());

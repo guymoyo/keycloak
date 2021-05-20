@@ -304,6 +304,7 @@ public class JpaUserProvider implements UserProvider.Streams, UserCredentialStor
         UserConsentModel model = new UserConsentModel(client);
         model.setCreatedDate(entity.getCreatedDate());
         model.setLastUpdatedDate(entity.getLastUpdatedDate());
+        model.setId(entity.getId());
 
         Collection<UserConsentClientScopeEntity> grantedClientScopeEntities = entity.getGrantedClientScopes();
         if (grantedClientScopeEntities != null) {

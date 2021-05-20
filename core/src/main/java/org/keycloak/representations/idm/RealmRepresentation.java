@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.jboss.logging.Logger;
 import org.keycloak.common.util.MultivaluedHashMap;
+import org.keycloak.enums.GrantIdSupportedOptions;
 import org.keycloak.util.JsonSerialization;
 
 import java.io.IOException;
@@ -82,6 +83,7 @@ public class RealmRepresentation {
     protected Boolean duplicateEmailsAllowed;
     protected Boolean resetPasswordAllowed;
     protected Boolean editUsernameAllowed;
+    protected GrantIdSupportedOptions grantIdSupported;
 
     @Deprecated
     protected Boolean userCacheEnabled;
@@ -644,6 +646,10 @@ public class RealmRepresentation {
     public void setEditUsernameAllowed(Boolean editUsernameAllowed) {
         this.editUsernameAllowed = editUsernameAllowed;
     }
+
+    public GrantIdSupportedOptions getGrantIdSupported() { return grantIdSupported; }
+
+    public void setGrantIdSupported(GrantIdSupportedOptions grantIdSupported) { this.grantIdSupported = grantIdSupported; }
 
     @Deprecated
     public Boolean isSocial() {

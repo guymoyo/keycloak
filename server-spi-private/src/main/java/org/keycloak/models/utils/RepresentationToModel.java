@@ -58,6 +58,7 @@ import org.keycloak.common.util.MultivaluedHashMap;
 import org.keycloak.common.util.UriUtils;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.credential.CredentialModel;
+import org.keycloak.enums.GrantIdSupportedOptions;
 import org.keycloak.keys.KeyProvider;
 import org.keycloak.migration.MigrationProvider;
 import org.keycloak.migration.migrators.MigrateTo8_0_0;
@@ -244,6 +245,10 @@ public class RepresentationToModel {
         if (rep.getAccessCodeLifespanUserAction() != null)
             newRealm.setAccessCodeLifespanUserAction(rep.getAccessCodeLifespanUserAction());
         else newRealm.setAccessCodeLifespanUserAction(300);
+
+        if( rep.getGrantIdSupported() != null)
+            newRealm.setGrantIdSupported(rep.getGrantIdSupported());
+        else newRealm.setGrantIdSupported(GrantIdSupportedOptions.NONE);
 
         if (rep.getAccessCodeLifespanLogin() != null)
             newRealm.setAccessCodeLifespanLogin(rep.getAccessCodeLifespanLogin());
@@ -1235,6 +1240,9 @@ public class RepresentationToModel {
         }
         if (rep.getDockerAuthenticationFlow() != null) {
             realm.setDockerAuthenticationFlow(realm.getFlowByAlias(rep.getDockerAuthenticationFlow()));
+        }
+        if(rep.getGrantIdSupported() != null) {
+            realm.setGrantIdSupported(rep.getGrantIdSupported());
         }
 
     }

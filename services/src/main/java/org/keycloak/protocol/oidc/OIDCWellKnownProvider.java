@@ -25,6 +25,7 @@ import org.keycloak.crypto.CekManagementProvider;
 import org.keycloak.crypto.ClientSignatureVerifierProvider;
 import org.keycloak.crypto.ContentEncryptionProvider;
 import org.keycloak.crypto.SignatureProvider;
+import org.keycloak.enums.GrantIdSupportedOptions;
 import org.keycloak.jose.jws.Algorithm;
 import org.keycloak.models.CibaConfig;
 import org.keycloak.models.ClientScopeModel;
@@ -186,6 +187,9 @@ public class OIDCWellKnownProvider implements WellKnownProvider {
         config.setPushedAuthorizationRequestEndpoint(ParEndpoint.parUrl(backendUriInfo.getBaseUriBuilder()).build(realm.getName()).toString());
         config.setRequirePushedAuthorizationRequests(Boolean.FALSE);
 
+        config.setGrantIdSupported(getGrantIdSupportedOption());
+        config.setGrantManagementEndpoint(backendUriBuilder.clone().path(OIDCLoginProtocolService.class, "auth").path(AuthorizationEndpoint.class, "grants").build(realm.getName(), OIDCLoginProtocol.LOGIN_PROTOCOL).toString());
+
         return config;
     }
 
@@ -195,6 +199,15 @@ public class OIDCWellKnownProvider implements WellKnownProvider {
 
     private static List<String> list(String... values) {
         return Arrays.asList(values);
+    }
+
+    private GrantIdSupportedOptions getGrantIdSupportedOption() {
+        String grantIdSupportedOptionAttr = session.getContext().getRealm().getAttribute("grantIdSupported");
+        if (grantIdSupportedOptionAttr == null) {
+            return GrantIdSupportedOptions.NONE;
+        } else {
+            return GrantIdSupportedOptions.valueOf(grantIdSupportedOptionAttr);
+        }
     }
 
     private List<String> getClientAuthMethodsSupported() {

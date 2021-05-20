@@ -104,6 +104,7 @@ public interface Errors {
 
     String INVALID_PERMISSION_TICKET = "invalid_permission_ticket";
     String ACCESS_DENIED = "access_denied";
+    String INVALID_GRANT_ID = "unknown grant_id";
 
     String INVALID_OAUTH2_DEVICE_CODE = "invalid_oauth2_device_code";
     String EXPIRED_OAUTH2_DEVICE_CODE = "expired_oauth2_device_code";
