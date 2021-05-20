@@ -25,10 +25,12 @@ import org.keycloak.crypto.CekManagementProvider;
 import org.keycloak.crypto.ClientSignatureVerifierProvider;
 import org.keycloak.crypto.ContentEncryptionProvider;
 import org.keycloak.crypto.SignatureProvider;
+import org.keycloak.enums.GrantIdSupportedType;
 import org.keycloak.jose.jws.Algorithm;
 import org.keycloak.models.ClientScopeModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
+import org.keycloak.protocol.oidc.endpoints.AuthorizationEndpoint;
 import org.keycloak.protocol.oidc.endpoints.TokenEndpoint;
 import org.keycloak.protocol.oidc.representations.OIDCConfigurationRepresentation;
 import org.keycloak.protocol.oidc.utils.OIDCResponseType;
@@ -159,6 +161,9 @@ public class OIDCWellKnownProvider implements WellKnownProvider {
 
         config.setBackchannelLogoutSupported(true);
         config.setBackchannelLogoutSessionSupported(true);
+
+        config.setGrantIdSupported(GrantIdSupportedType.ALWAYS);
+        config.setGrantManagementEndpoint(backendUriBuilder.clone().path(OIDCLoginProtocolService.class, "auth").path(AuthorizationEndpoint.class, "grants").build(realm.getName(), OIDCLoginProtocol.LOGIN_PROTOCOL).toString());
 
         return config;
     }

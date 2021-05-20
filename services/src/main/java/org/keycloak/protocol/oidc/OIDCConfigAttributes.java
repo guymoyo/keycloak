@@ -62,6 +62,8 @@ public final class OIDCConfigAttributes {
 
     public static final String USE_REFRESH_TOKEN_FOR_CLIENT_CREDENTIALS_GRANT = "client_credentials.use_refresh_token";
 
+    public static final String GRANT_ID_REQUIRED = "grant_id_required";
+
     private OIDCConfigAttributes() {
     }
 

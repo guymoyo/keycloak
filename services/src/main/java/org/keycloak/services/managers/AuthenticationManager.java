@@ -41,6 +41,7 @@ import org.keycloak.common.util.Base64Url;
 import org.keycloak.common.util.Time;
 import org.keycloak.crypto.SignatureProvider;
 import org.keycloak.crypto.SignatureVerifierContext;
+import org.keycloak.enums.GrantIdSupportedType;
 import org.keycloak.events.Details;
 import org.keycloak.events.Errors;
 import org.keycloak.events.EventBuilder;
@@ -68,6 +69,8 @@ import org.keycloak.protocol.oidc.BackchannelLogoutResponse;
 import org.keycloak.protocol.oidc.OIDCAdvancedConfigWrapper;
 import org.keycloak.protocol.oidc.OIDCLoginProtocol;
 import org.keycloak.protocol.oidc.TokenManager;
+import org.keycloak.protocol.oidc.OIDCWellKnownProviderFactory;
+import org.keycloak.protocol.oidc.representations.OIDCConfigurationRepresentation;
 import org.keycloak.representations.AccessToken;
 import org.keycloak.services.ServicesLogger;
 import org.keycloak.services.Urls;
@@ -81,6 +84,7 @@ import org.keycloak.sessions.AuthenticationSessionModel;
 import org.keycloak.sessions.CommonClientSessionModel;
 import org.keycloak.sessions.RootAuthenticationSessionModel;
 import org.keycloak.util.TokenUtil;
+import org.keycloak.wellknown.WellKnownProvider;
 
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.HttpHeaders;
@@ -89,7 +93,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -989,7 +992,7 @@ public class AuthenticationManager {
 
             // See if any clientScopes need to be approved on consent screen
             List<ClientScopeModel> clientScopesToApprove = getClientScopesToApproveOnConsentScreen(realm, grantedConsent, authSession);
-            if (!clientScopesToApprove.isEmpty()) {
+            if (!clientScopesToApprove.isEmpty() || isGrantSupported(session, client)) {
                 return CommonClientSessionModel.Action.OAUTH_GRANT.name();
             }
 
@@ -1045,17 +1048,20 @@ public class AuthenticationManager {
             List<ClientScopeModel> clientScopesToApprove = getClientScopesToApproveOnConsentScreen(realm, grantedConsent, authSession);
 
             // Skip grant screen if everything was already approved by this user
-            if (clientScopesToApprove.size() > 0) {
+            if (clientScopesToApprove.size() > 0 || isGrantSupported(session, client)) {
                 String execution = AuthenticatedClientSessionModel.Action.OAUTH_GRANT.name();
 
                 ClientSessionCode<AuthenticationSessionModel> accessCode = new ClientSessionCode<>(session, realm, authSession);
                 accessCode.setAction(AuthenticatedClientSessionModel.Action.REQUIRED_ACTIONS.name());
                 authSession.setAuthNote(AuthenticationProcessor.CURRENT_AUTHENTICATION_EXECUTION, execution);
 
+                Object authorizationDetails = request.getAttribute(OIDCLoginProtocol.AUTHORIZATION_DETAILS);
+
                 return session.getProvider(LoginFormsProvider.class)
                         .setAuthenticationSession(authSession)
                         .setExecution(execution)
                         .setClientSessionCode(accessCode.getOrGenerateCode())
+                        .setAttribute("authorizationDetails", authorizationDetails)
                         .setAccessRequest(clientScopesToApprove)
                         .createOAuthGrant();
             } else {
@@ -1067,6 +1073,19 @@ public class AuthenticationManager {
         }
         return null;
 
+    }
+
+    private static Boolean isGrantSupported(KeycloakSession session, ClientModel client) {
+
+        WellKnownProvider oidcProvider = session.getProvider(WellKnownProvider.class, OIDCWellKnownProviderFactory.PROVIDER_ID);
+        OIDCConfigurationRepresentation config = OIDCConfigurationRepresentation.class.cast(oidcProvider.getConfig());
+        boolean clientGrantIdRequired = OIDCAdvancedConfigWrapper.fromClientModel(client).getGrantIdRequired();
+
+        if (GrantIdSupportedType.ALWAYS.equals(config.getGrantIdSupported())
+                || (GrantIdSupportedType.OPTIONAL.equals(config.getGrantIdSupported()) && clientGrantIdRequired)) {
+            return true;
+        }
+        return false;
     }
 
     private static List<ClientScopeModel> getClientScopesToApproveOnConsentScreen(RealmModel realm, UserConsentModel grantedConsent,

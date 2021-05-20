@@ -102,5 +102,5 @@ public interface Errors {
 
     String INVALID_PERMISSION_TICKET = "invalid_permission_ticket";
     String ACCESS_DENIED = "access_denied";
-
+    String INVALID_GRANT_ID = "unknown grant_id";
 }

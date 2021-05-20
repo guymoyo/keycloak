@@ -18,7 +18,13 @@
                     </#list>
                 </#if>
             </ul>
-
+            <ul>
+                <#if authorizationDetails?has_content>
+                    <li>
+                        authorization Details: <span>${authorizationDetails}</span>
+                    </li>
+                </#if>
+            </ul>
             <form class="form-actions" action="${url.oauthAction}" method="POST">
                 <input type="hidden" name="code" value="${oauth.code}">
                 <div class="${properties.kcFormGroupClass!}">

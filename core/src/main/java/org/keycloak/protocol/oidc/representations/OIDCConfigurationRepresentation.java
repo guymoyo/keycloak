@@ -20,6 +20,7 @@ package org.keycloak.protocol.oidc.representations;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.keycloak.enums.GrantIdSupportedType;
 
 import java.util.HashMap;
 import java.util.List;
@@ -142,7 +143,29 @@ public class OIDCConfigurationRepresentation {
     @JsonProperty("backchannel_logout_session_supported")
     private Boolean backchannelLogoutSessionSupported;
 
+    @JsonProperty("grant_id_supported")
+    private GrantIdSupportedType grantIdSupported;
+
+    @JsonProperty("grant_management_endpoint")
+    private String grantManagementEndpoint;
+
     protected Map<String, Object> otherClaims = new HashMap<String, Object>();
+
+    public GrantIdSupportedType getGrantIdSupported() {
+        return grantIdSupported;
+    }
+
+    public void setGrantIdSupported(GrantIdSupportedType grantIdSupported) {
+        this.grantIdSupported = grantIdSupported;
+    }
+
+    public String getGrantManagementEndpoint() {
+        return grantManagementEndpoint;
+    }
+
+    public void setGrantManagementEndpoint(String grantManagementEndpoint) {
+        this.grantManagementEndpoint = grantManagementEndpoint;
+    }
 
     public String getIssuer() {
         return issuer;

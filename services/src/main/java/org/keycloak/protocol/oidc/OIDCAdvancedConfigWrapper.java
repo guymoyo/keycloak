@@ -220,6 +220,16 @@ public class OIDCAdvancedConfigWrapper {
         setAttribute(OIDCConfigAttributes.BACKCHANNEL_LOGOUT_REVOKE_OFFLINE_TOKENS, val);
     }
 
+    public boolean getGrantIdRequired() {
+        String grantIdRequired = getAttribute(OIDCConfigAttributes.GRANT_ID_REQUIRED);
+        return Boolean.parseBoolean(grantIdRequired);
+    }
+
+    public void setGrantIdRequired(boolean grantIdRequired) {
+        String val = String.valueOf(grantIdRequired);
+        setAttribute(OIDCConfigAttributes.GRANT_ID_REQUIRED, val);
+    }
+
     private String getAttribute(String attrKey) {
         if (clientModel != null) {
             return clientModel.getAttribute(attrKey);
