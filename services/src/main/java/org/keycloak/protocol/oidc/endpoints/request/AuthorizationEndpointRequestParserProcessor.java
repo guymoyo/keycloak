@@ -122,7 +122,7 @@ public class AuthorizationEndpointRequestParserProcessor {
         }
     }
 
-    public RequestUriType getRequestUriType(String requestUri) {
+    public static RequestUriType getRequestUriType(String requestUri) {
         if (requestUri == null) {
             throw new RuntimeException("'request_uri' parameter is null");
         }
