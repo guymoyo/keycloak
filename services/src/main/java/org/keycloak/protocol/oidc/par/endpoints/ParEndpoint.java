@@ -118,6 +118,7 @@ public class ParEndpoint implements RealmResourceProvider {
         int expiresIn = realm.getAttribute("requestUriLifespan", 60);
 
         request.getFormParameters().forEach((k, v) -> params.put(k, String.valueOf(v)));
+        params.put("created", String.valueOf(System.currentTimeMillis()));
 
         PushedAuthzRequestStoreProvider parStore = session.getProvider(PushedAuthzRequestStoreProvider.class,
                                                                        "par");

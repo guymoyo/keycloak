@@ -24,6 +24,7 @@ import org.keycloak.events.EventBuilder;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.PushedAuthzRequestStoreProvider;
+import org.keycloak.models.RealmModel;
 import org.keycloak.protocol.oidc.OIDCAdvancedConfigWrapper;
 import org.keycloak.protocol.oidc.OIDCConfigAttributes;
 import org.keycloak.protocol.oidc.OIDCLoginProtocol;
@@ -44,6 +45,9 @@ import java.util.Map;
  * @author <a href="mailto:mposolda@redhat.com">Marek Posolda</a>
  */
 public class AuthorizationEndpointRequestParserProcessor {
+
+    private static final int MILLIS_IN_SECOND = 1000;
+    private static final int DEFAULT_REQUEST_URI_LIFESPAN_SECONDS = 60;
 
     public static AuthorizationEndpointRequest parseRequest(EventBuilder event, KeycloakSession session, ClientModel client, MultivaluedMap<String, String> requestParams) {
         try {
@@ -139,6 +143,13 @@ public class AuthorizationEndpointRequestParserProcessor {
         String key = "111";
 
         Map<String, String> retrievedRequest = parStore.remove(key);
+        RealmModel realm = session.getContext().getRealm();
+        int expiresIn = realm.getAttribute("requestUriLifespan", DEFAULT_REQUEST_URI_LIFESPAN_SECONDS);
+        long created = Long.parseLong(retrievedRequest.get("created"));
+
+        if (System.currentTimeMillis() - created < (expiresIn * MILLIS_IN_SECOND)) {
+            // happy path - process PAR.
+        }
 
         return new AuthorizationEndpointRequest();
     }
