@@ -20,22 +20,20 @@ package org.keycloak.models;
 import org.keycloak.provider.Provider;
 
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * Provides single-use cache for Pushed Authorization Request. The data of this request may be used only once.
- *
  */
 public interface PushedAuthzRequestStoreProvider extends Provider {
 
     /**
-     * Stores the given data and guarantees that data should be available in the store for at least the time specified by {@param lifespanSeconds} parameter
-     * @param redirectUri
-     * @param lifespanSeconds
-     * @param codeData
-     * @return true if data were successfully put
+     * Stores the given data and guarantees that data should be available in the store for at least the time specified by {@param lifespanSeconds} parameter.
+     *
+     * @param key             unique identifier
+     * @param lifespanSeconds time to live
+     * @param codeData        the data to store
      */
-    void put(String redirectUri, int lifespanSeconds, Map<String, String> codeData);
+    void put(String key, int lifespanSeconds, Map<String, String> codeData);
 
 
     /**
@@ -43,8 +41,8 @@ public interface PushedAuthzRequestStoreProvider extends Provider {
      * 2 threads (even on different cluster nodes or on different cross-dc nodes) calls "remove(123)" concurrently, then just one of them
      * is allowed to succeed and return data back. It can't happen that both will succeed.
      *
-     * @param redirectUri
-     * @return context data related Pushed Authorization Request. It returns null if there are not context data available.
+     * @param key unique identifier
+     * @return context data related Pushed Authorization Request. It returns null if there is no context data available.
      */
-    Map<String, String> remove(String redirectUri);
+    Map<String, String> remove(String key);
 }

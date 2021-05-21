@@ -23,9 +23,11 @@ import org.keycloak.events.Errors;
 import org.keycloak.events.EventBuilder;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.PushedAuthzRequestStoreProvider;
 import org.keycloak.protocol.oidc.OIDCAdvancedConfigWrapper;
 import org.keycloak.protocol.oidc.OIDCConfigAttributes;
 import org.keycloak.protocol.oidc.OIDCLoginProtocol;
+import org.keycloak.protocol.oidc.par.ParConfig;
 import org.keycloak.protocol.oidc.utils.RedirectUtils;
 import org.keycloak.services.ErrorPageException;
 import org.keycloak.services.ServicesLogger;
@@ -36,6 +38,7 @@ import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author <a href="mailto:mposolda@redhat.com">Marek Posolda</a>
@@ -84,6 +87,16 @@ public class AuthorizationEndpointRequestParserProcessor {
                     throw new RuntimeException("Specified 'request_uri' not allowed for this client.");
                 }
 
+                // Define, if the request is `PAR` or usual `Request Object`.
+                RequestUriType requestUriType = getRequestUriType(requestUri);
+
+                if (requestUriType == RequestUriType.PAR ) {
+                    if (Boolean.parseBoolean(client.getAttribute(ParConfig.REQUIRE_PUSHED_AUTHORIZATION_REQUESTS))) {
+                        return processPar(session, requestUri);
+                    }
+                    throw new RuntimeException("Pushed Authorization Request is not allowed.");
+                }
+
                 try (InputStream is = session.getProvider(HttpClientProvider.class).get(requestUri)) {
                     String retrievedRequest = StreamUtil.readString(is);
                     new AuthzEndpointRequestObjectParser(session, retrievedRequest, client).parseRequest(request);
@@ -117,6 +130,17 @@ public class AuthorizationEndpointRequestParserProcessor {
         return requestUri.toLowerCase().startsWith("urn:ietf")
                        ? RequestUriType.PAR
                        : RequestUriType.REQUEST_OBJECT;
+    }
+
+    private static AuthorizationEndpointRequest processPar(KeycloakSession session, String requestUri) {
+        PushedAuthzRequestStoreProvider parStore = session.getProvider(PushedAuthzRequestStoreProvider.class, "par");
+
+        // TODO: parse request URI and obtain the key to load map of parameters.
+        String key = "111";
+
+        Map<String, String> retrievedRequest = parStore.remove(key);
+
+        return new AuthorizationEndpointRequest();
     }
 
 }

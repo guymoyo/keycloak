@@ -112,26 +112,22 @@ public class ParEndpoint implements RealmResourceProvider {
             return validationResponse;
         }
 
-        if (Boolean.parseBoolean(clientModel.getAttribute(ParConfig.REQUIRE_PUSHED_AUTHORIZATION_REQUESTS))) {
-            Map<String, String> params = new HashMap<>();
-            String requestUri = String.format(REQUEST_URI_TEMPLATE, Base64Url.encode(KeycloakModelUtils.generateSecret()));
+        Map<String, String> params = new HashMap<>();
+        String requestUri = String.format(REQUEST_URI_TEMPLATE, Base64Url.encode(KeycloakModelUtils.generateSecret()));
 
-            int expiresIn = realm.getAttribute("requestUriLifespan", 60);
+        int expiresIn = realm.getAttribute("requestUriLifespan", 60);
 
-            request.getFormParameters().forEach((k, v) -> params.put(k, String.valueOf(v)));
+        request.getFormParameters().forEach((k, v) -> params.put(k, String.valueOf(v)));
 
-            PushedAuthzRequestStoreProvider parStore = session.getProvider(PushedAuthzRequestStoreProvider.class,
-                                                                           "par");
-            parStore.put("grantId", expiresIn, params);
+        PushedAuthzRequestStoreProvider parStore = session.getProvider(PushedAuthzRequestStoreProvider.class,
+                                                                       "par");
+        parStore.put(requestUri, expiresIn, params);
 
-            ParResponse parResponse = new ParResponse(requestUri, String.valueOf(expiresIn));
-            return Response.status(Response.Status.CREATED)
-                           .entity(parResponse)
-                           .type(MediaType.APPLICATION_JSON_TYPE)
-                           .build();
-        }
-
-        return errorResponse(Response.Status.BAD_REQUEST.getStatusCode(), OAuthErrorException.INVALID_REQUEST, "Pushed Authorization Request is not allowed");
+        ParResponse parResponse = new ParResponse(requestUri, String.valueOf(expiresIn));
+        return Response.status(Response.Status.CREATED)
+                       .entity(parResponse)
+                       .type(MediaType.APPLICATION_JSON_TYPE)
+                       .build();
     }
 
     @Override
