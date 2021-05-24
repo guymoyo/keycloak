@@ -96,9 +96,11 @@ public class AuthorizationEndpointRequestParserProcessor {
 
                 if (requestUriType == RequestUriType.PAR ) {
                     if (Boolean.parseBoolean(client.getAttribute(ParConfig.REQUIRE_PUSHED_AUTHORIZATION_REQUESTS))) {
-                        return processPar(session, requestUri);
+                        enrichWithParParameters(session, requestUri, request);
+                        return request;
+                    } else {
+                        throw new RuntimeException("Pushed Authorization Request is not allowed.");
                     }
-                    throw new RuntimeException("Pushed Authorization Request is not allowed.");
                 }
 
                 try (InputStream is = session.getProvider(HttpClientProvider.class).get(requestUri)) {
@@ -136,7 +138,7 @@ public class AuthorizationEndpointRequestParserProcessor {
                        : RequestUriType.REQUEST_OBJECT;
     }
 
-    private static AuthorizationEndpointRequest processPar(KeycloakSession session, String requestUri) {
+    private static void enrichWithParParameters(KeycloakSession session, String requestUri, AuthorizationEndpointRequest request) {
         PushedAuthzRequestStoreProvider parStore = session.getProvider(PushedAuthzRequestStoreProvider.class, "par");
 
         // TODO: parse request URI and obtain the key to load map of parameters.
@@ -149,9 +151,10 @@ public class AuthorizationEndpointRequestParserProcessor {
 
         if (System.currentTimeMillis() - created < (expiresIn * MILLIS_IN_SECOND)) {
             // happy path - process PAR.
+            for (Map.Entry<String, String> entry : retrievedRequest.entrySet()) {
+                request.additionalReqParams.put(entry.getKey(), entry.getValue());
+            }
         }
-
-        return new AuthorizationEndpointRequest();
     }
 
 }
