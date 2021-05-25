@@ -96,7 +96,7 @@ public class AuthorizationEndpointRequestParserProcessor {
 
                 if (requestUriType == RequestUriType.PAR ) {
                     if (Boolean.parseBoolean(client.getAttribute(ParConfig.REQUIRE_PUSHED_AUTHORIZATION_REQUESTS))) {
-                        enrichWithParParameters(session, requestUri, request);
+                        enrichWithParParameters(session, requestUriParam, request);
                         return request;
                     } else {
                         throw new RuntimeException("Pushed Authorization Request is not allowed.");
@@ -141,18 +141,18 @@ public class AuthorizationEndpointRequestParserProcessor {
     private static void enrichWithParParameters(KeycloakSession session, String requestUri, AuthorizationEndpointRequest request) {
         PushedAuthzRequestStoreProvider parStore = session.getProvider(PushedAuthzRequestStoreProvider.class, "par");
 
-        // TODO: parse request URI and obtain the key to load map of parameters.
-        String key = "111";
+        Map<String, String> retrievedRequest = parStore.remove(requestUri);
 
-        Map<String, String> retrievedRequest = parStore.remove(key);
-        RealmModel realm = session.getContext().getRealm();
-        int expiresIn = realm.getAttribute("requestUriLifespan", DEFAULT_REQUEST_URI_LIFESPAN_SECONDS);
-        long created = Long.parseLong(retrievedRequest.get("created"));
+        if (retrievedRequest != null) {
+            RealmModel realm = session.getContext().getRealm();
+            int expiresIn = realm.getAttribute("requestUriLifespan", DEFAULT_REQUEST_URI_LIFESPAN_SECONDS);
+            long created = Long.parseLong(retrievedRequest.get("created"));
 
-        if (System.currentTimeMillis() - created < (expiresIn * MILLIS_IN_SECOND)) {
-            // happy path - process PAR.
-            for (Map.Entry<String, String> entry : retrievedRequest.entrySet()) {
-                request.additionalReqParams.put(entry.getKey(), entry.getValue());
+            if (System.currentTimeMillis() - created < (expiresIn * MILLIS_IN_SECOND)) {
+                // happy path - process PAR.
+                for (Map.Entry<String, String> entry : retrievedRequest.entrySet()) {
+                    request.additionalReqParams.put(entry.getKey(), entry.getValue());
+                }
             }
         }
     }
