@@ -17,6 +17,7 @@
 
 package org.keycloak.protocol.oidc.par.endpoints;
 
+import com.google.common.primitives.Bytes;
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.spi.HttpRequest;
 import org.jboss.resteasy.spi.HttpResponse;
@@ -30,7 +31,6 @@ import org.keycloak.events.EventType;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.KeycloakContext;
 import org.keycloak.models.KeycloakSession;
-import org.keycloak.protocol.oidc.par.ParConfig;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.PushedAuthzRequestStoreProvider;
 import org.keycloak.models.utils.KeycloakModelUtils;
@@ -51,6 +51,9 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -113,7 +116,9 @@ public class ParEndpoint implements RealmResourceProvider {
         }
 
         Map<String, String> params = new HashMap<>();
-        String requestUri = String.format(REQUEST_URI_TEMPLATE, Base64Url.encode(KeycloakModelUtils.generateSecret()));
+
+        byte[] clientHashAndSecret = Bytes.concat(getHash(clientModel.getClientId()), KeycloakModelUtils.generateSecret());
+        String requestUri = String.format(REQUEST_URI_TEMPLATE, Base64Url.encode(clientHashAndSecret));
 
         int expiresIn = realm.getAttribute("requestUriLifespan", 60);
 
@@ -173,6 +178,19 @@ public class ParEndpoint implements RealmResourceProvider {
         } catch (Exception e) {
             throw throwErrorResponseException(Errors.INVALID_REQUEST, "Authentication failed.", Response.Status.UNAUTHORIZED);
         }
+    }
+
+    private byte[] getHash(String inputData) {
+        byte[] hash;
+
+        try {
+            hash = MessageDigest.getInstance("SHA-256")
+                    .digest(inputData.getBytes(StandardCharsets.UTF_8));
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalArgumentException("Error calculating hash");
+        }
+
+        return hash;
     }
 
     private ErrorResponseException throwErrorResponseException(String error, String detail, Response.Status status) {
