@@ -34,13 +34,17 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.protocol.AuthorizationEndpointBase;
 import org.keycloak.protocol.oidc.OIDCAdvancedConfigWrapper;
 import org.keycloak.protocol.oidc.OIDCLoginProtocol;
+import org.keycloak.protocol.oidc.OIDCWellKnownProviderFactory;
 import org.keycloak.protocol.oidc.TokenManager;
 import org.keycloak.protocol.oidc.endpoints.request.AuthorizationEndpointRequest;
 import org.keycloak.protocol.oidc.endpoints.request.AuthorizationEndpointRequestParserProcessor;
+import org.keycloak.protocol.oidc.rar.RichAuthzRequestProcessorProvider;
+import org.keycloak.protocol.oidc.representations.OIDCConfigurationRepresentation;
 import org.keycloak.protocol.oidc.utils.OIDCRedirectUriBuilder;
 import org.keycloak.protocol.oidc.utils.OIDCResponseMode;
 import org.keycloak.protocol.oidc.utils.OIDCResponseType;
 import org.keycloak.protocol.oidc.utils.RedirectUtils;
+import org.keycloak.provider.Provider;
 import org.keycloak.services.ErrorPageException;
 import org.keycloak.services.ServicesLogger;
 import org.keycloak.services.Urls;
@@ -53,6 +57,7 @@ import org.keycloak.services.resources.LoginActionsService;
 import org.keycloak.services.util.CacheControlUtil;
 import org.keycloak.sessions.AuthenticationSessionModel;
 import org.keycloak.util.TokenUtil;
+import org.keycloak.wellknown.WellKnownProvider;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -153,6 +158,11 @@ public class AuthorizationEndpoint extends AuthorizationEndpointBase {
 
         // https://tools.ietf.org/html/rfc7636#section-4
         errorResponse = checkPKCEParams();
+        if (errorResponse != null) {
+            return errorResponse;
+        }
+
+        errorResponse = checkAuthorizationDetailsParam();
         if (errorResponse != null) {
             return errorResponse;
         }
@@ -291,6 +301,24 @@ public class AuthorizationEndpoint extends AuthorizationEndpointBase {
         }
 
         this.parsedResponseMode = parsedResponseMode;
+
+        return null;
+    }
+
+    private Response checkAuthorizationDetailsParam() {
+        WellKnownProvider oidcProvider = session.getProvider(WellKnownProvider.class, OIDCWellKnownProviderFactory.PROVIDER_ID);
+        OIDCConfigurationRepresentation config = OIDCConfigurationRepresentation.class.cast(oidcProvider.getConfig());
+
+        if(!config.getAuthorizationDetailsSupported() || request.getAuthorizationDetails() == null) {
+            return null;
+        }
+
+        RichAuthzRequestProcessorProvider rarProcessor = session.getProvider(RichAuthzRequestProcessorProvider.class);
+        try {
+            rarProcessor.checkAuthorizationDetails(request.getAuthorizationDetails());
+        } catch (Exception e) {
+            return redirectErrorToClient(parsedResponseMode, OAuthErrorException.INVALID_AUTHORIZATION_DETAILS, e.getMessage());
+        }
 
         return null;
     }
@@ -461,6 +489,7 @@ public class AuthorizationEndpoint extends AuthorizationEndpointBase {
         if (request.getAcr() != null) authenticationSession.setClientNote(OIDCLoginProtocol.ACR_PARAM, request.getAcr());
         if (request.getDisplay() != null) authenticationSession.setAuthNote(OAuth2Constants.DISPLAY, request.getDisplay());
         if (request.getUiLocales() != null) authenticationSession.setAuthNote(LocaleSelectorProvider.CLIENT_REQUEST_LOCALE, request.getUiLocales());
+        if (request.getAuthorizationDetails() != null) authenticationSession.setAuthNote(OIDCLoginProtocol.AUTHORIZATION_DETAILS, request.getAuthorizationDetails());
 
         // https://tools.ietf.org/html/rfc7636#section-4
         if (request.getCodeChallenge() != null) authenticationSession.setClientNote(OIDCLoginProtocol.CODE_CHALLENGE_PARAM, request.getCodeChallenge());

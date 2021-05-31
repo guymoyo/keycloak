@@ -125,6 +125,8 @@ public class OIDCClientRepresentation {
     
     private Boolean backchannel_logout_revoke_offline_tokens;
 
+    private String authorization_data_types_supported;
+
     public List<String> getRedirectUris() {
         return redirect_uris;
     }
@@ -487,4 +489,11 @@ public class OIDCClientRepresentation {
         this.tls_client_auth_subject_dn = tls_client_auth_subject_dn;
     }
 
+    public String getAuthorization_data_types_supported() {
+        return authorization_data_types_supported;
+    }
+
+    public void setAuthorization_data_types_supported(String authorization_data_types_supported) {
+        this.authorization_data_types_supported = authorization_data_types_supported;
+    }
 }

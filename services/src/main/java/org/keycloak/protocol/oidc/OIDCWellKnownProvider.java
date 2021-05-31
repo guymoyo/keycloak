@@ -30,6 +30,7 @@ import org.keycloak.models.ClientScopeModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.protocol.oidc.endpoints.TokenEndpoint;
+import org.keycloak.protocol.oidc.rar.RichAuthzRequestProcessorProvider;
 import org.keycloak.protocol.oidc.representations.OIDCConfigurationRepresentation;
 import org.keycloak.protocol.oidc.utils.OIDCResponseType;
 import org.keycloak.provider.Provider;
@@ -160,6 +161,9 @@ public class OIDCWellKnownProvider implements WellKnownProvider {
         config.setBackchannelLogoutSupported(true);
         config.setBackchannelLogoutSessionSupported(true);
 
+        config.setAuthorizationDetailsSupported(true);
+        config.setAuthorizationDataTypesSupported(getAuthorizationDetailsTypesSupported());
+
         return config;
     }
 
@@ -177,6 +181,11 @@ public class OIDCWellKnownProvider implements WellKnownProvider {
                 .map(caf -> caf.getProtocolAuthenticatorMethods(OIDCLoginProtocol.LOGIN_PROTOCOL))
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
+    }
+
+    private List<String> getAuthorizationDetailsTypesSupported() {
+        return session.getProvider(RichAuthzRequestProcessorProvider.class)
+                .getAuthorizationDetailsTypesSupported();
     }
 
     private List<String> getSupportedAlgorithms(Class<? extends Provider> clazz, boolean includeNone) {
