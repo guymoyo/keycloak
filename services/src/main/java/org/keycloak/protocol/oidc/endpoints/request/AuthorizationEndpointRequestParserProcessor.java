@@ -17,6 +17,7 @@
 
 package org.keycloak.protocol.oidc.endpoints.request;
 
+import org.keycloak.OAuth2Constants;
 import org.keycloak.common.util.StreamUtil;
 import org.keycloak.connections.httpclient.HttpClientProvider;
 import org.keycloak.events.Errors;
@@ -150,9 +151,13 @@ public class AuthorizationEndpointRequestParserProcessor {
 
             if (System.currentTimeMillis() - created < (expiresIn * MILLIS_IN_SECOND)) {
                 // happy path - process PAR.
-                for (Map.Entry<String, String> entry : retrievedRequest.entrySet()) {
-                    request.additionalReqParams.put(entry.getKey(), entry.getValue());
-                }
+                retrievedRequest.forEach((key, value) -> {
+                    String singleValue = value.replace("[", "").replace("]", "");
+                    request.additionalReqParams.put(key, singleValue);
+                    if (key.equalsIgnoreCase(OAuth2Constants.REDIRECT_URI)) {
+                        request.redirectUriParam = singleValue;
+                    }
+                });
             }
         }
     }
