@@ -947,7 +947,7 @@ public class LoginActionsService {
             } else {
                 try {
                         userGrantModel = grantService.getGrantByGrantId(realm, grantId, clientId);
-                        if (userGrantModel == null) {
+                        if (userGrantModel == null || !StringUtils.equals(user.getId(), userGrantModel.getUserId())) {
                             LoginProtocol protocol = session.getProvider(LoginProtocol.class, authSession.getProtocol());
                             protocol.setRealm(realm)
                                     .setHttpHeaders(headers)

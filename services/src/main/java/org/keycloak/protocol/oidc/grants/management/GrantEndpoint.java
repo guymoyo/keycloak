@@ -40,7 +40,7 @@ import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserGrantModel;
 import org.keycloak.models.UserSessionModel;
-import org.keycloak.models.ModelException;
+import org.keycloak.models.UserProvider;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.utils.KeycloakModelUtils;
 import org.keycloak.protocol.oidc.OIDCAdvancedConfigWrapper;
@@ -66,6 +66,8 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Collections;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Grant management for OAuth 2.0 endpoint
@@ -92,6 +94,7 @@ public class GrantEndpoint implements RealmResourceProvider {
     private final AppAuthManager appAuthManager;
     private final RealmModel realm;
     private ClientModel clientModel;
+    private UserModel user;
     private EventBuilder event;
     private Cors cors;
 
@@ -120,7 +123,7 @@ public class GrantEndpoint implements RealmResourceProvider {
 
         checkSsl();
         checkRealm();
-        ClientModel clientModel = authorizeClient();
+        clientModel = authorizeClient();
 
         String accessToken = this.appAuthManager.extractAuthorizationHeaderTokenOrReturnNull(headers);
         checkToken(accessToken, GRANT_MANAGEMENT_QUERY, clientModel.getClientId());
@@ -155,13 +158,18 @@ public class GrantEndpoint implements RealmResourceProvider {
 
         checkSsl();
         checkRealm();
-        ClientModel clientModel = authorizeClient();
+        clientModel = authorizeClient();
 
         String accessToken = this.appAuthManager.extractAuthorizationHeaderTokenOrReturnNull(headers);
         checkToken(accessToken, GRANT_MANAGEMENT_REVOKE, clientModel.getClientId());
 
         GrantService grantService = session.getProvider(GrantService.class);
         try {
+                UserGrantModel grant = grantService.getGrantByGrantId(realm, grantId, clientModel.getClientId());
+                UserProvider userProvider = session.getProvider(UserProvider.class);
+                user = userProvider.getUserById(realm, grant.getUserId());
+                revokeClient();
+
                 grantService.revokeGrantByGrantId(realm, grantId, clientModel.getClientId());
         } catch (Exception e) {
             throw new CorsErrorResponseException(cors.allowAllOrigins(), OAuthErrorException.INVALID_REQUEST, "Grant not found", Response.Status.BAD_REQUEST);
@@ -176,6 +184,25 @@ public class GrantEndpoint implements RealmResourceProvider {
 
     @Override
     public void close() {
+    }
+
+    private void revokeClient() {
+
+        session.sessions().getUserSessionsStream(realm, user)
+                .map(userSession -> userSession.getAuthenticatedClientSessionByClient(clientModel.getId()))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList()) // collect to avoid concurrent modification as dettachClientSession removes the user sessions.
+                .forEach(clientSession -> {
+                    UserSessionModel userSession = clientSession.getUserSession();
+                    TokenManager.dettachClientSession(clientSession);
+
+                    if (userSession != null) {
+                        // TODO: Might need optimization to prevent loading client sessions from cache in getAuthenticatedClientSessions()
+                        if (userSession.getAuthenticatedClientSessions().isEmpty()) {
+                            session.sessions().removeUserSession(realm, userSession);
+                        }
+                    }
+                });
     }
 
     private ClientModel authorizeClient() {
