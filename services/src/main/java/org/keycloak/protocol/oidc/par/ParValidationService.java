@@ -39,11 +39,11 @@ public class ParValidationService {
 
     public Response validateParRequest(HttpRequest request, ClientModel clientModel) {
 
-        if (request.getFormParameters().containsKey(REQUEST_URI_PARAM)) {
+        if (request.getDecodedFormParameters().containsKey(REQUEST_URI_PARAM)) {
             return errorResponse(Response.Status.BAD_REQUEST.getStatusCode(), OAuthErrorException.INVALID_REQUEST, "The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed");
         }
 
-        authorizationRequest = AuthorizationEndpointRequestParserProcessor.parseRequest(event, session, clientModel, request.getFormParameters());
+        authorizationRequest = AuthorizationEndpointRequestParserProcessor.parseRequest(event, session, clientModel, request.getDecodedFormParameters());
 
         checkRedirectUri(clientModel);
         Response errorResponse = checkResponseType(clientModel);

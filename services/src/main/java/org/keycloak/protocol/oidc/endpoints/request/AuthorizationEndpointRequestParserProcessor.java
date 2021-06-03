@@ -17,19 +17,15 @@
 
 package org.keycloak.protocol.oidc.endpoints.request;
 
-import org.keycloak.OAuth2Constants;
 import org.keycloak.common.util.StreamUtil;
 import org.keycloak.connections.httpclient.HttpClientProvider;
 import org.keycloak.events.Errors;
 import org.keycloak.events.EventBuilder;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.KeycloakSession;
-import org.keycloak.models.PushedAuthzRequestStoreProvider;
-import org.keycloak.models.RealmModel;
 import org.keycloak.protocol.oidc.OIDCAdvancedConfigWrapper;
 import org.keycloak.protocol.oidc.OIDCConfigAttributes;
 import org.keycloak.protocol.oidc.OIDCLoginProtocol;
-import org.keycloak.protocol.oidc.par.ParConfig;
 import org.keycloak.protocol.oidc.utils.RedirectUtils;
 import org.keycloak.services.ErrorPageException;
 import org.keycloak.services.ServicesLogger;
@@ -40,15 +36,11 @@ import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author <a href="mailto:mposolda@redhat.com">Marek Posolda</a>
  */
 public class AuthorizationEndpointRequestParserProcessor {
-
-    private static final int MILLIS_IN_SECOND = 1000;
-    private static final int DEFAULT_REQUEST_URI_LIFESPAN_SECONDS = 60;
 
     public static AuthorizationEndpointRequest parseRequest(EventBuilder event, KeycloakSession session, ClientModel client, MultivaluedMap<String, String> requestParams) {
         try {
@@ -85,23 +77,23 @@ public class AuthorizationEndpointRequestParserProcessor {
             if (requestParam != null) {
                 new AuthzEndpointRequestObjectParser(session, requestParam, client).parseRequest(request);
             } else if (requestUriParam != null) {
+                // Define, if the request is `PAR` or usual `Request Object`.
+                RequestUriType requestUriType = getRequestUriType(requestUriParam);
+                if (requestUriType == RequestUriType.PAR) {
+                    if (OIDCAdvancedConfigWrapper.fromClientModel(client).getRequiredPushedAuthorizationRequests()) {
+                    //if (Boolean.parseBoolean(client.getAttribute(ParConfig.REQUIRE_PUSHED_AUTHORIZATION_REQUESTS))) {
+                        new AuthzEndpointParParser(session, requestUriParam).parseRequest(request);
+                        return request;
+                    } else {
+                        throw new RuntimeException("Pushed Authorization Request is not allowed.");
+                    }
+                }
+
                 // Validate "requestUriParam" with allowed requestUris
                 List<String> requestUris = OIDCAdvancedConfigWrapper.fromClientModel(client).getRequestUris();
                 String requestUri = RedirectUtils.verifyRedirectUri(session, client.getRootUrl(), requestUriParam, new HashSet<>(requestUris), false);
                 if (requestUri == null) {
                     throw new RuntimeException("Specified 'request_uri' not allowed for this client.");
-                }
-
-                // Define, if the request is `PAR` or usual `Request Object`.
-                RequestUriType requestUriType = getRequestUriType(requestUri);
-
-                if (requestUriType == RequestUriType.PAR ) {
-                    if (Boolean.parseBoolean(client.getAttribute(ParConfig.REQUIRE_PUSHED_AUTHORIZATION_REQUESTS))) {
-                        enrichWithParParameters(session, requestUriParam, request);
-                        return request;
-                    } else {
-                        throw new RuntimeException("Pushed Authorization Request is not allowed.");
-                    }
                 }
 
                 try (InputStream is = session.getProvider(HttpClientProvider.class).get(requestUri)) {
@@ -137,29 +129,6 @@ public class AuthorizationEndpointRequestParserProcessor {
         return requestUri.toLowerCase().startsWith("urn:ietf")
                        ? RequestUriType.PAR
                        : RequestUriType.REQUEST_OBJECT;
-    }
-
-    private static void enrichWithParParameters(KeycloakSession session, String requestUri, AuthorizationEndpointRequest request) {
-        PushedAuthzRequestStoreProvider parStore = session.getProvider(PushedAuthzRequestStoreProvider.class, "par");
-
-        Map<String, String> retrievedRequest = parStore.remove(requestUri);
-
-        if (retrievedRequest != null) {
-            RealmModel realm = session.getContext().getRealm();
-            int expiresIn = realm.getAttribute("requestUriLifespan", DEFAULT_REQUEST_URI_LIFESPAN_SECONDS);
-            long created = Long.parseLong(retrievedRequest.get("created"));
-
-            if (System.currentTimeMillis() - created < (expiresIn * MILLIS_IN_SECOND)) {
-                // happy path - process PAR.
-                retrievedRequest.forEach((key, value) -> {
-                    String singleValue = value.replace("[", "").replace("]", "");
-                    request.additionalReqParams.put(key, singleValue);
-                    if (key.equalsIgnoreCase(OAuth2Constants.REDIRECT_URI)) {
-                        request.redirectUriParam = singleValue;
-                    }
-                });
-            }
-        }
     }
 
 }

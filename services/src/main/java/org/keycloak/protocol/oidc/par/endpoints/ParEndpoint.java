@@ -36,6 +36,7 @@ import org.keycloak.models.PushedAuthzRequestStoreProvider;
 import org.keycloak.models.utils.KeycloakModelUtils;
 import org.keycloak.protocol.oidc.par.ParValidationService;
 import org.keycloak.protocol.oidc.utils.AuthorizeClientUtil;
+import org.keycloak.protocol.oidc.OIDCAdvancedConfigWrapper;
 import org.keycloak.protocol.oidc.par.ParResponse;
 import org.keycloak.representations.idm.OAuth2ErrorRepresentation;
 import org.keycloak.services.CorsErrorResponseException;
@@ -89,7 +90,7 @@ public class ParEndpoint implements RealmResourceProvider {
     }
 
     @POST
-    @Consumes({MediaType.APPLICATION_FORM_URLENCODED})
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.APPLICATION_JSON)
     public Response handlePar() {
 
@@ -106,9 +107,12 @@ public class ParEndpoint implements RealmResourceProvider {
         authorizeClient();
 
         ClientModel clientModel = session.getContext().getClient();
+        if (!OIDCAdvancedConfigWrapper.fromClientModel(clientModel).getRequiredPushedAuthorizationRequests()) {
+            event.error(Errors.INVALID_REQUEST);
+            throw throwErrorResponseException(Errors.INVALID_REQUEST, "PAR not allowed.", Response.Status.BAD_REQUEST);
+        }
 
         ParValidationService parValidationService = new ParValidationService(session, event);
-
         Response validationResponse = parValidationService.validateParRequest(request, clientModel);
 
         if (validationResponse != null) {
@@ -122,7 +126,9 @@ public class ParEndpoint implements RealmResourceProvider {
 
         int expiresIn = realm.getAttribute("requestUriLifespan", 60);
 
-        request.getFormParameters().forEach((k, v) -> params.put(k, String.valueOf(v)));
+        request.getDecodedFormParameters().forEach((k, v) -> {
+            String singleValue = String.valueOf(v).replace("[", "").replace("]", "");
+            params.put(k, singleValue);});
         params.put("created", String.valueOf(System.currentTimeMillis()));
 
         PushedAuthzRequestStoreProvider parStore = session.getProvider(PushedAuthzRequestStoreProvider.class,
