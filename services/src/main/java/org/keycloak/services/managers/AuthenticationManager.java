@@ -1055,7 +1055,7 @@ public class AuthenticationManager {
                 accessCode.setAction(AuthenticatedClientSessionModel.Action.REQUIRED_ACTIONS.name());
                 authSession.setAuthNote(AuthenticationProcessor.CURRENT_AUTHENTICATION_EXECUTION, execution);
 
-                Object authorizationDetails = request.getAttribute(OIDCLoginProtocol.AUTHORIZATION_DETAILS);
+                Object authorizationDetails = request.getAttribute(OIDCLoginProtocol.AUTHORIZATION_DETAILS_PARAM);
 
                 return session.getProvider(LoginFormsProvider.class)
                         .setAuthenticationSession(authSession)

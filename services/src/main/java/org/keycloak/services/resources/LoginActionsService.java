@@ -924,6 +924,7 @@ public class LoginActionsService {
         OIDCConfigurationRepresentation config = OIDCConfigurationRepresentation.class.cast(oidcProvider.getConfig());
         boolean clientGrantIdRequired = OIDCAdvancedConfigWrapper.fromClientModel(client).getGrantIdRequired();
 
+        long currentTime = Time.currentTimeMillis();
         if (GrantIdSupportedType.ALWAYS.equals(config.getGrantIdSupported())
                 || (GrantIdSupportedType.OPTIONAL.equals(config.getGrantIdSupported()) && clientGrantIdRequired)) {
 
@@ -936,9 +937,11 @@ public class LoginActionsService {
                 userGrantModel.setGrantId(grantId);
                 userGrantModel.setClientId(clientId);
                 userGrantModel.setUserId(user.getId());
-                userGrantModel.setScopes(formData.getFirst("scope"));
-                userGrantModel.setClaims(formData.getFirst("claims"));
-                userGrantModel.setAuthorizationDetails(formData.getFirst("authorization_details"));
+                userGrantModel.setScopes(authSession.getAuthNote(OIDCLoginProtocol.SCOPE_PARAM));
+                userGrantModel.setClaims(authSession.getAuthNote(OIDCLoginProtocol.CLAIMS_PARAM));
+                userGrantModel.setAuthorizationDetails(authSession.getAuthNote(OIDCLoginProtocol.AUTHORIZATION_DETAILS_PARAM));
+                userGrantModel.setCreatedDate(currentTime);
+                userGrantModel.setLastUpdatedDate(currentTime);
                 try {
                     grantService.adduserGrant(realm, userGrantModel);
                 } catch (Exception e) {
@@ -957,9 +960,10 @@ public class LoginActionsService {
                             event.error(Errors.INVALID_GRANT_ID);
                             return response;
                         }
-                        userGrantModel.setScopes(formData.getFirst("scope"));
-                        userGrantModel.setClaims(formData.getFirst("claims"));
-                        userGrantModel.setAuthorizationDetails(formData.getFirst("authorization_details"));
+                        userGrantModel.setScopes(authSession.getAuthNote(OIDCLoginProtocol.SCOPE_PARAM));
+                        userGrantModel.setClaims(authSession.getAuthNote(OIDCLoginProtocol.CLAIMS_PARAM));
+                        userGrantModel.setAuthorizationDetails(authSession.getAuthNote(OIDCLoginProtocol.AUTHORIZATION_DETAILS_PARAM));
+                        userGrantModel.setLastUpdatedDate(currentTime);
                         grantService.updateUserGrant(realm, userGrantModel);
                 } catch (Exception e) {
                     e.printStackTrace();
