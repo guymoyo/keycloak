@@ -66,6 +66,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -306,18 +307,25 @@ public class AuthorizationEndpoint extends AuthorizationEndpointBase {
     }
 
     private Response checkAuthorizationDetailsParam() {
-        WellKnownProvider oidcProvider = session.getProvider(WellKnownProvider.class, OIDCWellKnownProviderFactory.PROVIDER_ID);
-        OIDCConfigurationRepresentation config = OIDCConfigurationRepresentation.class.cast(oidcProvider.getConfig());
 
-        if(!config.getAuthorizationDetailsSupported() || request.getAuthorizationDetails() == null) {
-            return null;
-        }
+        if( request.getAuthorizationDetails() != null) {
 
-        RichAuthzRequestProcessorProvider rarProcessor = session.getProvider(RichAuthzRequestProcessorProvider.class);
-        try {
-            rarProcessor.checkAuthorizationDetails(request.getAuthorizationDetails());
-        } catch (Exception e) {
-            return redirectErrorToClient(parsedResponseMode, OAuthErrorException.INVALID_AUTHORIZATION_DETAILS, e.getMessage());
+            RichAuthzRequestProcessorProvider rarProcessor = session.getProvider(RichAuthzRequestProcessorProvider.class);
+            if (rarProcessor == null) {
+                throw new IllegalArgumentException("No provider for rarProcessor");
+            }
+
+            List<String> authorizationDetailsTypesSupported = rarProcessor.getAuthorizationDetailsTypesSupported();
+            if (authorizationDetailsTypesSupported == null) {
+                throw new IllegalArgumentException("Authorization Details Types Supported has not be defined");
+            }
+
+            List<String> authorizationDetailsTypes = OIDCAdvancedConfigWrapper.fromClientModel(client).getAuthorizationDetailsTypes();
+            try {
+                rarProcessor.checkAuthorizationDetails(request.getAuthorizationDetails(), authorizationDetailsTypes);
+            } catch (Exception e) {
+                return redirectErrorToClient(parsedResponseMode, OAuthErrorException.INVALID_AUTHORIZATION_DETAILS, e.getMessage());
+            }
         }
 
         return null;

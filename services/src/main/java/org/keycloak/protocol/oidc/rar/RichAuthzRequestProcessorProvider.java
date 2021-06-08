@@ -28,9 +28,10 @@ public interface RichAuthzRequestProcessorProvider extends Provider {
      * conforming to the respective types definition supported
      * check the required field
      *
-     * @param authorizationDetailsJson
+     * @param authorizationDetailsJson authorization detail
+     * @param authorizationDetailsTypes client authorization detail type supported
      */
-   void checkAuthorizationDetails(String authorizationDetailsJson) throws Exception;
+   void checkAuthorizationDetails(String authorizationDetailsJson, List<String> authorizationDetailsTypes) throws Exception;
 
     /**
      *
@@ -48,6 +49,8 @@ public interface RichAuthzRequestProcessorProvider extends Provider {
    String mergeAuthorizationDetails(String newAuthorizationDetailsJson, String oldAuthorizationDetailsJson);
 
     /**
+     * This method will enriches the data in an authorization details object
+     * It can be the case where Client sent an authorization details with some empty field that would be fill by this method
      *
      * @param authorizationDetailsJson
      * @return an authorizationDetailsJson populated with some data if needed

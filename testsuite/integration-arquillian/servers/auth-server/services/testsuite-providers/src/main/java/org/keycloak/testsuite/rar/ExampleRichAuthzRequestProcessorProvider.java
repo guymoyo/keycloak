@@ -30,7 +30,7 @@ public class ExampleRichAuthzRequestProcessorProvider implements RichAuthzReques
     }
 
     @Override
-    public void checkAuthorizationDetails(String authorizationDetailsJson) throws Exception {
+    public void checkAuthorizationDetails(String authorizationDetailsJson, List<String> authorizationDetailsTypes) throws Exception {
         convertAuthorizationDetailsJsonToObjet(authorizationDetailsJson);
         if (paymentInitiation == null && accountInformation == null) {
             throw new Exception("authorization details not conforming to the respective type definition");

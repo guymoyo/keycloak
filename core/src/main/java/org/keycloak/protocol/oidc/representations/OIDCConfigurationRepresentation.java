@@ -142,11 +142,8 @@ public class OIDCConfigurationRepresentation {
     @JsonProperty("backchannel_logout_session_supported")
     private Boolean backchannelLogoutSessionSupported;
 
-    @JsonProperty("authorization_details_supported")
-    private Boolean authorizationDetailsSupported;
-
-    @JsonProperty("authorization_data_types_supported")
-    private List<String> authorizationDataTypesSupported;
+    @JsonProperty("authorization_details_types_supported")
+    private List<String> authorizationDetailsTypesSupported;
 
     protected Map<String, Object> otherClaims = new HashMap<String, Object>();
 
@@ -442,20 +439,12 @@ public class OIDCConfigurationRepresentation {
         this.backchannelLogoutSupported = backchannelLogoutSupported;
     }
 
-    public Boolean getAuthorizationDetailsSupported() {
-        return authorizationDetailsSupported;
+    public List<String> getAuthorizationDetailsTypesSupported() {
+        return authorizationDetailsTypesSupported;
     }
 
-    public void setAuthorizationDetailsSupported(Boolean authorizationDetailsSupported) {
-        this.authorizationDetailsSupported = authorizationDetailsSupported;
-    }
-
-    public List<String> getAuthorizationDataTypesSupported() {
-        return authorizationDataTypesSupported;
-    }
-
-    public void setAuthorizationDataTypesSupported(List<String> authorizationDataTypesSupported) {
-        this.authorizationDataTypesSupported = authorizationDataTypesSupported;
+    public void setAuthorizationDetailsTypesSupported(List<String> authorizationDetailsTypesSupported) {
+        this.authorizationDetailsTypesSupported = authorizationDetailsTypesSupported;
     }
 
     @JsonAnyGetter

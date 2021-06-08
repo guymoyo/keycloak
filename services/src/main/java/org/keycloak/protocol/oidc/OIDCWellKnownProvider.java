@@ -161,8 +161,7 @@ public class OIDCWellKnownProvider implements WellKnownProvider {
         config.setBackchannelLogoutSupported(true);
         config.setBackchannelLogoutSessionSupported(true);
 
-        config.setAuthorizationDetailsSupported(true);
-        config.setAuthorizationDataTypesSupported(getAuthorizationDetailsTypesSupported());
+        config.setAuthorizationDetailsTypesSupported(getAuthorizationDetailsTypesSupported());
 
         return config;
     }
