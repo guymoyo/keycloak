@@ -18,6 +18,7 @@ package org.keycloak.protocol.oidc.rar;
 
 import org.keycloak.provider.Provider;
 
+import javax.ws.rs.core.MultivaluedMap;
 import java.util.List;
 
 public interface RichAuthzRequestProcessorProvider extends Provider {
@@ -55,5 +56,19 @@ public interface RichAuthzRequestProcessorProvider extends Provider {
      * @param authorizationDetailsJson
      * @return an authorizationDetailsJson populated with some data if needed
      */
-   String enrichAuthorizationDetails(String authorizationDetailsJson);
+   Object enrichAuthorizationDetails(String authorizationDetailsJson);
+
+    /**
+     *
+     * @return the partial template name, where the grant/authorizationDetails will be show
+     */
+   String getTemplateName();
+
+    /**
+     *
+     * @param formData
+     * @param authorizationDetailsJson
+     * @return a authorizationDetails merge with some know data
+     */
+   String finaliseAuthorizationDetails(MultivaluedMap<String, String> formData, String authorizationDetailsJson);
 }

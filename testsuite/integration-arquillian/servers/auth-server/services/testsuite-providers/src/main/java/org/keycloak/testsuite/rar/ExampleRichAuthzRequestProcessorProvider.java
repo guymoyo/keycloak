@@ -5,6 +5,7 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.protocol.oidc.rar.RichAuthzRequestProcessorProvider;
 import org.keycloak.util.JsonSerialization;
 
+import javax.ws.rs.core.MultivaluedMap;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -68,7 +69,17 @@ public class ExampleRichAuthzRequestProcessorProvider implements RichAuthzReques
     }
 
     @Override
-    public String enrichAuthorizationDetails(String authorizationDetailsJson) {
+    public Object enrichAuthorizationDetails(String authorizationDetailsJson) {
+        return authorizationDetailsJson;
+    }
+
+    @Override
+    public String getTemplateName() {
+        return null;
+    }
+
+    @Override
+    public String finaliseAuthorizationDetails(MultivaluedMap<String, String> formData, String authorizationDetailsJson) {
         return authorizationDetailsJson;
     }
 
