@@ -23,6 +23,7 @@ import org.keycloak.common.enums.SslRequired;
 import org.keycloak.common.util.MultivaluedHashMap;
 import org.keycloak.component.ComponentFactory;
 import org.keycloak.component.ComponentModel;
+import org.keycloak.enums.GrantIdSupportedOptions;
 import org.keycloak.models.*;
 import org.keycloak.models.jpa.entities.*;
 import org.keycloak.models.utils.ComponentUtil;
@@ -395,6 +396,20 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
     @Override
     public boolean isEditUsernameAllowed() {
         return realm.isEditUsernameAllowed();
+    }
+
+    @Override
+    public void setGrantIdSupported(GrantIdSupportedOptions grantIdSupported) {
+        setAttribute(RealmAttributes.GRANT_ID_SUPPORTED, grantIdSupported.name());
+    }
+
+    @Override
+    public GrantIdSupportedOptions getGrantIdSupported() {
+        String grantIdSupported = getAttribute(RealmAttributes.GRANT_ID_SUPPORTED);
+        if (grantIdSupported != null) {
+            return GrantIdSupportedOptions.valueOf(grantIdSupported);
+        }
+        return GrantIdSupportedOptions.NONE;
     }
 
     @Override

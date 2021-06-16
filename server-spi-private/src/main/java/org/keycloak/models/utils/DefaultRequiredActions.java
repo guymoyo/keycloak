@@ -83,6 +83,17 @@ public class DefaultRequiredActions {
             realm.addRequiredActionProvider(termsAndConditions);
         }
 
+        if (realm.getRequiredActionProviderByAlias(UserModel.RequiredAction.GRANT_REQUIRED.name()) == null) {
+            RequiredActionProviderModel grantRequired = new RequiredActionProviderModel();
+            grantRequired.setEnabled(true);
+            grantRequired.setAlias(UserModel.RequiredAction.GRANT_REQUIRED.name());
+            grantRequired.setName("Grant Required");
+            grantRequired.setProviderId(UserModel.RequiredAction.GRANT_REQUIRED.name());
+            grantRequired.setDefaultAction(false);
+            grantRequired.setPriority(70);
+            realm.addRequiredActionProvider(grantRequired);
+        }
+
         addUpdateLocaleAction(realm);
         addDeleteAccountAction(realm);
     }

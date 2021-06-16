@@ -20,6 +20,7 @@ package org.keycloak.models.cache.infinispan;
 import org.keycloak.Config;
 import org.keycloak.common.enums.SslRequired;
 import org.keycloak.component.ComponentModel;
+import org.keycloak.enums.GrantIdSupportedOptions;
 import org.keycloak.models.*;
 import org.keycloak.models.cache.CachedRealmModel;
 import org.keycloak.models.cache.UserCache;
@@ -363,6 +364,18 @@ public class RealmAdapter implements CachedRealmModel {
     public boolean isEditUsernameAllowed() {
         if (isUpdated()) return updated.isEditUsernameAllowed();
         return cached.isEditUsernameAllowed();
+    }
+
+    @Override
+    public void setGrantIdSupported(GrantIdSupportedOptions grantIdSupported) {
+        getDelegateForUpdate();
+        updated.setGrantIdSupported(grantIdSupported);
+    }
+
+    @Override
+    public GrantIdSupportedOptions getGrantIdSupported() {
+        if (isUpdated()) return updated.getGrantIdSupported();
+        return cached.getGrantIdSupported();
     }
 
     @Override

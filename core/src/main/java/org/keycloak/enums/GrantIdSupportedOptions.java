@@ -18,7 +18,7 @@
 package org.keycloak.enums;
 
 
-public enum GrantIdSupportedType {
+public enum GrantIdSupportedOptions {
     NONE,
     OPTIONAL,
     ALWAYS

@@ -1035,7 +1035,9 @@ public class TokenManager {
 
             AuthenticatedClientSessionModel clientSession = clientSessionCtx.getClientSession();
             String grantId = clientSession.getNote(OIDCLoginProtocol.GRANT_ID_PARAM);
-            res.setGrantId(grantId);
+            if (grantId != null ) {
+                res.setGrantId(grantId);
+            }
 
             return res;
         }
