@@ -8,10 +8,12 @@ import org.keycloak.events.Errors;
 import org.keycloak.events.EventBuilder;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.KeycloakSession;
+import org.keycloak.protocol.oidc.OIDCAdvancedConfigWrapper;
 import org.keycloak.protocol.oidc.OIDCLoginProtocol;
 import org.keycloak.protocol.oidc.TokenManager;
 import org.keycloak.protocol.oidc.endpoints.request.AuthorizationEndpointRequest;
 import org.keycloak.protocol.oidc.endpoints.request.AuthorizationEndpointRequestParserProcessor;
+import org.keycloak.protocol.oidc.rar.RichAuthzRequestProcessorProvider;
 import org.keycloak.protocol.oidc.utils.OIDCResponseMode;
 import org.keycloak.protocol.oidc.utils.OIDCResponseType;
 import org.keycloak.protocol.oidc.utils.RedirectUtils;
@@ -22,6 +24,8 @@ import org.keycloak.util.TokenUtil;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
+import java.util.List;
 
 import static org.keycloak.protocol.oidc.OIDCLoginProtocol.REQUEST_URI_PARAM;
 
@@ -47,6 +51,11 @@ public class ParValidationService {
 
         checkRedirectUri(clientModel);
         Response errorResponse = checkResponseType(clientModel);
+        if (errorResponse != null) {
+            return errorResponse;
+        }
+
+        errorResponse = checkAuthorizationDetailsParam(clientModel);
         if (errorResponse != null) {
             return errorResponse;
         }
@@ -85,6 +94,32 @@ public class ParValidationService {
             event.error(Errors.INVALID_REDIRECT_URI);
             throw throwErrorResponseException(Errors.INVALID_REQUEST, "Invalid parameter: redirect_uri", Response.Status.BAD_REQUEST);
         }
+    }
+
+    private Response checkAuthorizationDetailsParam(ClientModel clientModel) {
+
+        if( authorizationRequest.getAuthorizationDetails() != null) {
+
+            RichAuthzRequestProcessorProvider rarProcessor = session.getProvider(RichAuthzRequestProcessorProvider.class);
+            if (rarProcessor == null) {
+                throw new IllegalArgumentException("No provider for rarProcessor");
+            }
+
+            List<String> authorizationDetailsTypesSupported = rarProcessor.getAuthorizationDetailsTypesSupported();
+            if (authorizationDetailsTypesSupported == null) {
+                throw new IllegalArgumentException("Authorization Details Types Supported has not be defined");
+            }
+
+            List<String> authorizationDetailsTypes = OIDCAdvancedConfigWrapper.fromClientModel(clientModel).getAuthorizationDetailsTypes();
+            try {
+                rarProcessor.checkAuthorizationDetails(authorizationRequest.getAuthorizationDetails(), authorizationDetailsTypes);
+            } catch (Exception e) {
+                event.error(OAuthErrorException.INVALID_AUTHORIZATION_DETAILS);
+                throw throwErrorResponseException(OAuthErrorException.INVALID_AUTHORIZATION_DETAILS, "Invalid parameter: authorization_details", Response.Status.BAD_REQUEST);
+            }
+        }
+
+        return null;
     }
 
     private Response checkResponseType(ClientModel clientModel) {

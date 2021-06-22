@@ -81,15 +81,7 @@ public class ExampleRichAuthzRequestProcessorProvider implements RichAuthzReques
 
     @Override
     public String finaliseAuthorizationDetails(MultivaluedMap<String, String> formData, String authorizationDetailsJson) {
-
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            String json = mapper.writeValueAsString(JsonSerialization.readValue(authorizationDetailsJson, PaymentInitiation.class).toString());
-            return json;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return authorizationDetailsJson;
     }
 
     private Object convertAuthorizationDetailsJsonToObjet(String authorizationDetailsJson) {
