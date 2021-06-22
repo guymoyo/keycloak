@@ -254,6 +254,10 @@ public class RepresentationToModel {
             newRealm.setActionTokenGeneratedByUserLifespan(rep.getActionTokenGeneratedByUserLifespan());
         else newRealm.setActionTokenGeneratedByUserLifespan(newRealm.getAccessCodeLifespanUserAction());
 
+        if (rep.getRequestUriLifespan() != null)
+            newRealm.setRequestUriLifespan(rep.getRequestUriLifespan());
+        else newRealm.setRequestUriLifespan(60);
+
         if (rep.getSslRequired() != null)
             newRealm.setSslRequired(SslRequired.valueOf(rep.getSslRequired().toUpperCase()));
         if (rep.isRegistrationAllowed() != null) newRealm.setRegistrationAllowed(rep.isRegistrationAllowed());
@@ -1157,6 +1161,9 @@ public class RepresentationToModel {
         if (rep.isAdminEventsDetailsEnabled() != null)
             realm.setAdminEventsDetailsEnabled(rep.isAdminEventsDetailsEnabled());
 
+        if (rep.getRequestUriLifespan() != null) {
+            realm.setRequestUriLifespan(rep.getRequestUriLifespan());
+        }
 
         if (rep.getPasswordPolicy() != null)
             realm.setPasswordPolicy(PasswordPolicy.parse(session, rep.getPasswordPolicy()));

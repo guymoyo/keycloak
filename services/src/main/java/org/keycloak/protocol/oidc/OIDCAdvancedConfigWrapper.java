@@ -21,6 +21,7 @@ import org.keycloak.authentication.authenticators.client.X509ClientAuthenticator
 import org.keycloak.jose.jws.Algorithm;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.Constants;
+import org.keycloak.protocol.oidc.par.ParConfig;
 import org.keycloak.representations.idm.ClientRepresentation;
 
 import java.util.Arrays;
@@ -228,6 +229,16 @@ public class OIDCAdvancedConfigWrapper {
     public void setGrantIdRequired(boolean grantIdRequired) {
         String val = String.valueOf(grantIdRequired);
         setAttribute(OIDCConfigAttributes.GRANT_ID_REQUIRED, val);
+    }
+
+    public boolean getRequiredPushedAuthorizationRequests() {
+        String requiredPushedAuthorizationRequests = getAttribute(ParConfig.REQUIRE_PUSHED_AUTHORIZATION_REQUESTS);
+        return Boolean.parseBoolean(requiredPushedAuthorizationRequests);
+    }
+
+    public void setRequiredPushedAuthorizationRequests(boolean requiredPushedAuthorizationRequests) {
+        String val = String.valueOf(requiredPushedAuthorizationRequests);
+        setAttribute(ParConfig.REQUIRE_PUSHED_AUTHORIZATION_REQUESTS, val);
     }
 
     private String getAttribute(String attrKey) {

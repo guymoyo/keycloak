@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Red Hat, Inc. and/or its affiliates
+ * Copyright 2021 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -148,6 +148,13 @@ public class OIDCConfigurationRepresentation {
 
     @JsonProperty("grant_management_endpoint")
     private String grantManagementEndpoint;
+
+    // These 2 parameters below are provided for PAR request.
+    @JsonProperty("require_pushed_authorization_requests")
+    private Boolean requirePushedAuthorizationRequests;
+
+    @JsonProperty("pushed_authorization_request_endpoint")
+    private String pushedAuthorizationRequestEndpoint;
 
     protected Map<String, Object> otherClaims = new HashMap<String, Object>();
 
@@ -340,7 +347,7 @@ public class OIDCConfigurationRepresentation {
     }
 
     public void setIntrospectionEndpointAuthSigningAlgValuesSupported(
-        List<String> introspectionEndpointAuthSigningAlgValuesSupported) {
+            List<String> introspectionEndpointAuthSigningAlgValuesSupported) {
         this.introspectionEndpointAuthSigningAlgValuesSupported = introspectionEndpointAuthSigningAlgValuesSupported;
     }
 
@@ -457,6 +464,22 @@ public class OIDCConfigurationRepresentation {
 
     public void setBackchannelLogoutSupported(Boolean backchannelLogoutSupported) {
         this.backchannelLogoutSupported = backchannelLogoutSupported;
+    }
+
+    public String getPushedAuthorizationRequestEndpoint() {
+        return pushedAuthorizationRequestEndpoint;
+    }
+
+    public void setPushedAuthorizationRequestEndpoint(String pushedAuthorizationRequestEndpoint) {
+        this.pushedAuthorizationRequestEndpoint = pushedAuthorizationRequestEndpoint;
+    }
+
+    public Boolean getRequirePushedAuthorizationRequests() {
+        return requirePushedAuthorizationRequests;
+    }
+
+    public void setRequirePushedAuthorizationRequests(Boolean requirePushedAuthorizationRequests) {
+        this.requirePushedAuthorizationRequests = requirePushedAuthorizationRequests;
     }
 
     @JsonAnyGetter

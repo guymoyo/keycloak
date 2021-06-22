@@ -71,6 +71,7 @@ public class ModelToRepresentation {
         REALM_EXCLUDED_ATTRIBUTES.add("actionTokenGeneratedByUserLifespan");
         REALM_EXCLUDED_ATTRIBUTES.add("offlineSessionMaxLifespanEnabled");
         REALM_EXCLUDED_ATTRIBUTES.add("offlineSessionMaxLifespan");
+        REALM_EXCLUDED_ATTRIBUTES.add("requestUriLifespan");
 
         REALM_EXCLUDED_ATTRIBUTES.add("webAuthnPolicyRpEntityName");
         REALM_EXCLUDED_ATTRIBUTES.add("webAuthnPolicySignatureAlgorithms");
@@ -354,6 +355,7 @@ public class ModelToRepresentation {
         rep.setAccessCodeLifespanLogin(realm.getAccessCodeLifespanLogin());
         rep.setActionTokenGeneratedByAdminLifespan(realm.getActionTokenGeneratedByAdminLifespan());
         rep.setActionTokenGeneratedByUserLifespan(realm.getActionTokenGeneratedByUserLifespan());
+        rep.setRequestUriLifespan(realm.getRequestUriLifespan());
         rep.setSmtpServer(new HashMap<>(realm.getSmtpConfig()));
         rep.setBrowserSecurityHeaders(realm.getBrowserSecurityHeaders());
         rep.setAccountTheme(realm.getAccountTheme());

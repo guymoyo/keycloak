@@ -52,4 +52,7 @@ public interface RealmAttributes {
 
     String GRANT_ID_SUPPORTED = "grantIdSupported";
 
+    // PAR request.
+    String REQUEST_URI_LIFESPAN = "requestUriLifespan";
+
 }

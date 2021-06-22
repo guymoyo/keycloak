@@ -165,6 +165,10 @@ public class OIDCWellKnownProvider implements WellKnownProvider {
         config.setGrantIdSupported(getGrantIdSupportedOption());
         config.setGrantManagementEndpoint(backendUriBuilder.clone().path(OIDCLoginProtocolService.class, "auth").path(AuthorizationEndpoint.class, "grants").build(realm.getName(), OIDCLoginProtocol.LOGIN_PROTOCOL).toString());
 
+        config.setRequirePushedAuthorizationRequests(false);
+        config.setPushedAuthorizationRequestEndpoint(RealmsResource.realmBaseUrl(backendUriInfo)
+                                                             .clone()
+                                                             .build(realm.getName()).toString() + "/par");
         return config;
     }
 
@@ -187,15 +191,15 @@ public class OIDCWellKnownProvider implements WellKnownProvider {
 
     private List<String> getClientAuthMethodsSupported() {
         return session.getKeycloakSessionFactory().getProviderFactoriesStream(ClientAuthenticator.class)
-                .map(ClientAuthenticatorFactory.class::cast)
-                .map(caf -> caf.getProtocolAuthenticatorMethods(OIDCLoginProtocol.LOGIN_PROTOCOL))
-                .flatMap(Collection::stream)
-                .collect(Collectors.toList());
+                       .map(ClientAuthenticatorFactory.class::cast)
+                       .map(caf -> caf.getProtocolAuthenticatorMethods(OIDCLoginProtocol.LOGIN_PROTOCOL))
+                       .flatMap(Collection::stream)
+                       .collect(Collectors.toList());
     }
 
     private List<String> getSupportedAlgorithms(Class<? extends Provider> clazz, boolean includeNone) {
         Stream<String> supportedAlgorithms = session.getKeycloakSessionFactory().getProviderFactoriesStream(clazz)
-                .map(ProviderFactory::getId);
+                                                     .map(ProviderFactory::getId);
 
         if (includeNone) {
             supportedAlgorithms = Streams.concat(supportedAlgorithms, Stream.of("none"));

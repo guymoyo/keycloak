@@ -232,6 +232,9 @@ public interface RealmModel extends RoleContainerModel {
     int getActionTokenGeneratedByAdminLifespan();
     void setActionTokenGeneratedByAdminLifespan(int seconds);
 
+    int getRequestUriLifespan();
+    void setRequestUriLifespan(int seconds);
+
     int getActionTokenGeneratedByUserLifespan();
     void setActionTokenGeneratedByUserLifespan(int seconds);
 
