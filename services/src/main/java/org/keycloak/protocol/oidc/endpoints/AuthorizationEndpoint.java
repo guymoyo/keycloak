@@ -35,14 +35,18 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.protocol.AuthorizationEndpointBase;
 import org.keycloak.protocol.oidc.OIDCAdvancedConfigWrapper;
 import org.keycloak.protocol.oidc.OIDCLoginProtocol;
+import org.keycloak.protocol.oidc.OIDCWellKnownProviderFactory;
 import org.keycloak.protocol.oidc.TokenManager;
 import org.keycloak.protocol.oidc.endpoints.request.AuthorizationEndpointRequest;
 import org.keycloak.protocol.oidc.endpoints.request.AuthorizationEndpointRequestParserProcessor;
 import org.keycloak.protocol.oidc.grants.management.GrantEndpoint;
+import org.keycloak.protocol.oidc.rar.RichAuthzRequestProcessorProvider;
+import org.keycloak.protocol.oidc.representations.OIDCConfigurationRepresentation;
 import org.keycloak.protocol.oidc.utils.OIDCRedirectUriBuilder;
 import org.keycloak.protocol.oidc.utils.OIDCResponseMode;
 import org.keycloak.protocol.oidc.utils.OIDCResponseType;
 import org.keycloak.protocol.oidc.utils.RedirectUtils;
+import org.keycloak.provider.Provider;
 import org.keycloak.services.ErrorPageException;
 import org.keycloak.services.ServicesLogger;
 import org.keycloak.services.Urls;
@@ -53,6 +57,7 @@ import org.keycloak.services.resources.LoginActionsService;
 import org.keycloak.services.util.CacheControlUtil;
 import org.keycloak.sessions.AuthenticationSessionModel;
 import org.keycloak.util.TokenUtil;
+import org.keycloak.wellknown.WellKnownProvider;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -62,6 +67,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -164,6 +170,11 @@ public class AuthorizationEndpoint extends AuthorizationEndpointBase {
 
         // https://tools.ietf.org/html/rfc7636#section-4
         errorResponse = checkPKCEParams();
+        if (errorResponse != null) {
+            return errorResponse;
+        }
+
+        errorResponse = checkAuthorizationDetailsParam();
         if (errorResponse != null) {
             return errorResponse;
         }
@@ -302,6 +313,31 @@ public class AuthorizationEndpoint extends AuthorizationEndpointBase {
         }
 
         this.parsedResponseMode = parsedResponseMode;
+
+        return null;
+    }
+
+    private Response checkAuthorizationDetailsParam() {
+
+        if( request.getAuthorizationDetails() != null) {
+
+            RichAuthzRequestProcessorProvider rarProcessor = session.getProvider(RichAuthzRequestProcessorProvider.class);
+            if (rarProcessor == null) {
+                throw new IllegalArgumentException("No provider for rarProcessor");
+            }
+
+            List<String> authorizationDetailsTypesSupported = rarProcessor.getAuthorizationDetailsTypesSupported();
+            if (authorizationDetailsTypesSupported == null) {
+                throw new IllegalArgumentException("Authorization Details Types Supported has not be defined");
+            }
+
+            List<String> authorizationDetailsTypes = OIDCAdvancedConfigWrapper.fromClientModel(client).getAuthorizationDetailsTypes();
+            try {
+                rarProcessor.checkAuthorizationDetails(request.getAuthorizationDetails(), authorizationDetailsTypes);
+            } catch (Exception e) {
+                return redirectErrorToClient(parsedResponseMode, OAuthErrorException.INVALID_AUTHORIZATION_DETAILS, e.getMessage());
+            }
+        }
 
         return null;
     }
@@ -473,6 +509,7 @@ public class AuthorizationEndpoint extends AuthorizationEndpointBase {
         if (request.getDisplay() != null) authenticationSession.setAuthNote(OAuth2Constants.DISPLAY, request.getDisplay());
         if (request.getUiLocales() != null) authenticationSession.setAuthNote(LocaleSelectorProvider.CLIENT_REQUEST_LOCALE, request.getUiLocales());
         if(request.getGrantId() != null) authenticationSession.setAuthNote(OIDCLoginProtocol.GRANT_ID_PARAM, request.getGrantId());
+        if (request.getAuthorizationDetails() != null) authenticationSession.setAuthNote(OIDCLoginProtocol.AUTHORIZATION_DETAILS, request.getAuthorizationDetails());
 
         // https://tools.ietf.org/html/rfc7636#section-4
         if (request.getCodeChallenge() != null) authenticationSession.setClientNote(OIDCLoginProtocol.CODE_CHALLENGE_PARAM, request.getCodeChallenge());

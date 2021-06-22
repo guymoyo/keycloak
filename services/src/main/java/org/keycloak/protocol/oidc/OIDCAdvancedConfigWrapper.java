@@ -241,6 +241,12 @@ public class OIDCAdvancedConfigWrapper {
         setAttribute(ParConfig.REQUIRE_PUSHED_AUTHORIZATION_REQUESTS, val);
     }
 
+    public List<String> getAuthorizationDetailsTypes() { return getAttributeMultivalued(OIDCConfigAttributes.AUTHORIZATION_DETAILS_TYPES); }
+
+    public void setAuthorizationDetailsTypes(List<String> authorization_details_types) {
+        setAttributeMultivalued(OIDCConfigAttributes.AUTHORIZATION_DETAILS_TYPES, authorization_details_types);
+    }
+
     private String getAttribute(String attrKey) {
         if (clientModel != null) {
             return clientModel.getAttribute(attrKey);

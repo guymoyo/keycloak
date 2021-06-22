@@ -130,6 +130,8 @@ public class OIDCClientRepresentation {
     // PAR request.
     private Boolean require_pushed_authorization_requests;
 
+    private List<String> authorization_details_types;
+
     public List<String> getRedirectUris() {
         return redirect_uris;
     }
@@ -506,5 +508,12 @@ public class OIDCClientRepresentation {
 
     public void setRequirePushedAuthorizationRequests(Boolean require_pushed_authorization_requests) {
         this.require_pushed_authorization_requests = require_pushed_authorization_requests;
+    }
+    public List<String> getAuthorizationDetailsTypes() {
+        return authorization_details_types;
+    }
+
+    public void setAuthorizationDetailsTypes(List<String> authorization_details_types) {
+        this.authorization_details_types = authorization_details_types;
     }
 }

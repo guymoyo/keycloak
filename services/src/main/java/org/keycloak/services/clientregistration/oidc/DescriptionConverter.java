@@ -151,6 +151,10 @@ public class DescriptionConverter {
             configWrapper.setGrantIdRequired(clientOIDC.getGrantIdRequired());
         }
 
+        if(clientOIDC.getAuthorizationDetailsTypes() != null ) {
+            configWrapper.setAuthorizationDetailsTypes(clientOIDC.getAuthorizationDetailsTypes());
+        }
+
         configWrapper.setTokenEndpointAuthSigningAlg(clientOIDC.getTokenEndpointAuthSigningAlg());
 
         configWrapper.setBackchannelLogoutUrl(clientOIDC.getBackchannelLogoutUri());
@@ -267,6 +271,9 @@ public class DescriptionConverter {
         }
         if (config.getRequestUris() != null) {
             response.setRequestUris(config.getRequestUris());
+        }
+        if(config.getAuthorizationDetailsTypes() != null) {
+            response.setAuthorizationDetailsTypes(config.getAuthorizationDetailsTypes());
         }
         if (config.getTokenEndpointAuthSigningAlg() != null) {
             response.setTokenEndpointAuthSigningAlg(config.getTokenEndpointAuthSigningAlg());

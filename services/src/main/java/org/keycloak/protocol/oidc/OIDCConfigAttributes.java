@@ -64,6 +64,8 @@ public final class OIDCConfigAttributes {
 
     public static final String GRANT_ID_REQUIRED = "grant_id_required";
 
+    public static final String AUTHORIZATION_DETAILS_TYPES = "authorization_details_types";
+
     private OIDCConfigAttributes() {
     }
 
