@@ -33,6 +33,7 @@ import org.keycloak.models.*;
 import org.keycloak.models.utils.KeycloakModelUtils;
 import org.keycloak.protocol.oidc.OIDCAdvancedConfigWrapper;
 import org.keycloak.protocol.oidc.OIDCLoginProtocol;
+import org.keycloak.protocol.oidc.rar.RichAuthzRequestProcessorProvider;
 import org.keycloak.services.managers.AuthenticationManager;
 import org.keycloak.sessions.AuthenticationSessionModel;
 
@@ -63,30 +64,28 @@ public class GrantRequiredAction implements RequiredActionProvider {
 
         ClientModel client = context.getAuthenticationSession().getClient();
         boolean clientGrantIdRequired = OIDCAdvancedConfigWrapper.fromClientModel(client).getGrantIdRequired();
-        //TODO
-        //String authorizationDetails = context.getAuthenticationSession().getAuthNote(OIDCLoginProtocol.AUTHORIZATION_DETAILS_PARAM);
-        //if (StringUtils.isNotEmpty(authorizationDetails)) ...
+        String authorizationDetails = context.getAuthenticationSession().getAuthNote(OIDCLoginProtocol.AUTHORIZATION_DETAILS_PARAM);
+        if (StringUtils.isNotEmpty(authorizationDetails)) {
 
-        if (GrantIdSupportedOptions.ALWAYS.equals(grantIdSupportedOption)
-                || (GrantIdSupportedOptions.OPTIONAL.equals(grantIdSupportedOption) && clientGrantIdRequired)) {
+            if (GrantIdSupportedOptions.ALWAYS.equals(grantIdSupportedOption)
+                    || (GrantIdSupportedOptions.OPTIONAL.equals(grantIdSupportedOption) && clientGrantIdRequired)) {
 
-            context.getUser().addRequiredAction(UserModel.RequiredAction.GRANT_REQUIRED);
-            logger.debug("User is required to accept or reject the grant");
+                context.getUser().addRequiredAction(UserModel.RequiredAction.GRANT_REQUIRED);
+                logger.debug("User is required to accept or reject the grant");
+            }
+
         }
 
     }
 
     @Override
     public void requiredActionChallenge(RequiredActionContext context) {
-
+        RichAuthzRequestProcessorProvider rarProcessor = context.getSession().getProvider(RichAuthzRequestProcessorProvider.class);
         String authorizationDetails = context.getAuthenticationSession().getAuthNote(OIDCLoginProtocol.AUTHORIZATION_DETAILS_PARAM);
         //the authorizationDetails coming from client can be enrich with data coming from a resource
-        //TODO: when merge with RAR branch, Response challenge = context.form()
-        // .setAttribute("authorizationDetail", rarProcessor.enrich(authorizationDetail))
-        // .createForm(rarProcessor.getTemplateName());
         Response challenge = context.form()
-                .setAttribute("authorizationDetails", authorizationDetails)
-                .createForm("grant-required.ftl");
+                .setAttribute("authorizationDetails", rarProcessor.enrichAuthorizationDetails(authorizationDetails))
+                .createForm(rarProcessor.getTemplateName());
         context.challenge(challenge);
     }
 
@@ -107,6 +106,9 @@ public class GrantRequiredAction implements RequiredActionProvider {
             return;
         }
 
+        RichAuthzRequestProcessorProvider rarProcessor = context.getSession().getProvider(RichAuthzRequestProcessorProvider.class);
+
+        String authorizationDetails;
         String grantId = authSession.getAuthNote(OIDCLoginProtocol.GRANT_ID_PARAM);
         GrantService grantService = context.getSession().getProvider(GrantService.class);
         long currentTime = Time.currentTimeMillis();
@@ -122,7 +124,8 @@ public class GrantRequiredAction implements RequiredActionProvider {
                 userGrantModel.setScopes(authSession.getAuthNote(OIDCLoginProtocol.SCOPE_PARAM));
                 userGrantModel.setClaims(authSession.getAuthNote(OIDCLoginProtocol.CLAIMS_PARAM));
                 //User can select some additional parameter that we sent to the template previously, we need to combine
-                //TODO: when merging with RAR, userGrantModel.setAuthorizationDetails(rarProcessor.finaliseAuthorizationDetails(formData, authSession.getAuthNote(OIDCLoginProtocol.AUTHORIZATION_DETAILS_PARAM)));
+                authorizationDetails = rarProcessor.finaliseAuthorizationDetails(formData, authSession.getAuthNote(OIDCLoginProtocol.AUTHORIZATION_DETAILS_PARAM));
+                userGrantModel.setAuthorizationDetails(authorizationDetails);
                 userGrantModel.setAuthorizationDetails(authSession.getAuthNote(OIDCLoginProtocol.AUTHORIZATION_DETAILS_PARAM));
                 userGrantModel.setCreatedDate(currentTime);
                 userGrantModel.setLastUpdatedDate(currentTime);
@@ -139,7 +142,8 @@ public class GrantRequiredAction implements RequiredActionProvider {
                 userGrantModel.setScopes(authSession.getAuthNote(OIDCLoginProtocol.SCOPE_PARAM));
                 userGrantModel.setClaims(authSession.getAuthNote(OIDCLoginProtocol.CLAIMS_PARAM));
                 //User can select some additional parameter that we sent to the template previously, we need to combine
-                //TODO: when merging with RAR, userGrantModel.setAuthorizationDetails(rarProcessor.finaliseAuthorizationDetails(formData, authSession.getAuthNote(OIDCLoginProtocol.AUTHORIZATION_DETAILS_PARAM)));
+                authorizationDetails = rarProcessor.finaliseAuthorizationDetails(formData, authSession.getAuthNote(OIDCLoginProtocol.AUTHORIZATION_DETAILS_PARAM));
+                userGrantModel.setAuthorizationDetails(authorizationDetails);
                 userGrantModel.setAuthorizationDetails(authSession.getAuthNote(OIDCLoginProtocol.AUTHORIZATION_DETAILS_PARAM));
                 userGrantModel.setLastUpdatedDate(currentTime);
                 grantService.updateUserGrant(realm, userGrantModel);
@@ -153,6 +157,7 @@ public class GrantRequiredAction implements RequiredActionProvider {
 
         cleanSession(context, RequiredActionContext.KcActionStatus.SUCCESS);
         authSession.setClientNote(OIDCLoginProtocol.GRANT_ID_PARAM, grantId);
+        authSession.setClientNote(OIDCLoginProtocol.AUTHORIZATION_DETAILS_PARAM, authorizationDetails);
         authSession.setClientNote(GRANT_ACCEPTED, GRANT_ACCEPTED);
         context.success();
     }

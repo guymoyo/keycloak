@@ -1039,6 +1039,11 @@ public class TokenManager {
                 res.setGrantId(grantId);
             }
 
+            String authorizationDetails = clientSession.getNote(OIDCLoginProtocol.AUTHORIZATION_DETAILS_PARAM);
+            if (authorizationDetails != null ) {
+                res.setAuthorizationDetails(authorizationDetails);
+            }
+
             return res;
         }
 

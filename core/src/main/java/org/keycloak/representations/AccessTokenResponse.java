@@ -65,6 +65,17 @@ public class AccessTokenResponse {
     @JsonProperty("grant_id")
     protected String grantId;
 
+    @JsonProperty("authorization_details")
+    protected String authorizationDetails;
+
+    public String getAuthorizationDetails() {
+        return authorizationDetails;
+    }
+
+    public void setAuthorizationDetails(String authorizationDetails) {
+        this.authorizationDetails = authorizationDetails;
+    }
+
     public String getGrantId() {
         return grantId;
     }

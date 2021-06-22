@@ -1,5 +1,6 @@
 package org.keycloak.testsuite.rar;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.protocol.oidc.rar.RichAuthzRequestProcessorProvider;
@@ -70,28 +71,39 @@ public class ExampleRichAuthzRequestProcessorProvider implements RichAuthzReques
 
     @Override
     public Object enrichAuthorizationDetails(String authorizationDetailsJson) {
-        return authorizationDetailsJson;
+        return convertAuthorizationDetailsJsonToObjet(authorizationDetailsJson);
     }
 
     @Override
     public String getTemplateName() {
-        return null;
+        return "grant-required-psd2.ftl";
     }
 
     @Override
     public String finaliseAuthorizationDetails(MultivaluedMap<String, String> formData, String authorizationDetailsJson) {
-        return authorizationDetailsJson;
+
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            String json = mapper.writeValueAsString(JsonSerialization.readValue(authorizationDetailsJson, PaymentInitiation.class).toString());
+            return json;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
-    private void convertAuthorizationDetailsJsonToObjet(String authorizationDetailsJson) {
+    private Object convertAuthorizationDetailsJsonToObjet(String authorizationDetailsJson) {
         try {
-             paymentInitiation = JsonSerialization.readValue(authorizationDetailsJson, PaymentInitiation.class);
+              paymentInitiation = JsonSerialization.readValue(authorizationDetailsJson, PaymentInitiation.class);
+            return paymentInitiation;
         } catch (IOException ioe) {
         }
 
         try {
-            accountInformation = JsonSerialization.readValue(authorizationDetailsJson, AccountInformation.class);
+             accountInformation = JsonSerialization.readValue(authorizationDetailsJson, AccountInformation.class);
+            return accountInformation;
         } catch (IOException ioe) {
         }
+        return null;
     }
 }

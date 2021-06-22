@@ -7,6 +7,15 @@ public class PaymentInitiation {
     private String currency;
     private String creditorName;
     private String creditorAccount;
+    private String debitorAccount;
+
+    public String getDebitorAccount() {
+        return debitorAccount;
+    }
+
+    public void setDebitorAccount(String debitorAccount) {
+        this.debitorAccount = debitorAccount;
+    }
 
     public String getType() {
         return type;
