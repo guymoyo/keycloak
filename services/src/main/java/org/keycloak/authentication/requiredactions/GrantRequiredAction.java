@@ -17,7 +17,6 @@
 
 package org.keycloak.authentication.requiredactions;
 
-import org.apache.commons.lang.StringUtils;
 import org.jboss.logging.Logger;
 import org.keycloak.authentication.AuthenticationProcessor;
 import org.keycloak.authentication.RequiredActionContext;
@@ -65,10 +64,10 @@ public class GrantRequiredAction implements RequiredActionProvider {
         ClientModel client = context.getAuthenticationSession().getClient();
         boolean clientGrantIdRequired = OIDCAdvancedConfigWrapper.fromClientModel(client).getGrantIdRequired();
         String authorizationDetails = context.getAuthenticationSession().getAuthNote(OIDCLoginProtocol.AUTHORIZATION_DETAILS_PARAM);
-        if (StringUtils.isNotEmpty(authorizationDetails)) {
+        if (authorizationDetails != null && !authorizationDetails.isEmpty()) {
 
             if (GrantIdSupportedOptions.ALWAYS.equals(grantIdSupportedOption)
-                    || (GrantIdSupportedOptions.OPTIONAL.equals(grantIdSupportedOption) && clientGrantIdRequired)) {
+                        || (GrantIdSupportedOptions.OPTIONAL.equals(grantIdSupportedOption) && clientGrantIdRequired)) {
 
                 context.getUser().addRequiredAction(UserModel.RequiredAction.GRANT_REQUIRED);
                 logger.debug("User is required to accept or reject the grant");
@@ -84,8 +83,8 @@ public class GrantRequiredAction implements RequiredActionProvider {
         String authorizationDetails = context.getAuthenticationSession().getAuthNote(OIDCLoginProtocol.AUTHORIZATION_DETAILS_PARAM);
         //the authorizationDetails coming from client can be enrich with data coming from a resource
         Response challenge = context.form()
-                .setAttribute("authorizationDetails", rarProcessor.enrichAuthorizationDetails(authorizationDetails))
-                .createForm(rarProcessor.getTemplateName());
+                                     .setAttribute("authorizationDetails", rarProcessor.enrichAuthorizationDetails(authorizationDetails))
+                                     .createForm(rarProcessor.getTemplateName());
         context.challenge(challenge);
     }
 
@@ -115,7 +114,7 @@ public class GrantRequiredAction implements RequiredActionProvider {
 
         try {
             UserGrantModel userGrantModel;
-            if (StringUtils.isEmpty(grantId)) {
+            if (grantId != null && !grantId.isEmpty()) {
                 userGrantModel = new UserGrantModel();
                 grantId = Base64Url.encode(KeycloakModelUtils.generateSecret());
                 userGrantModel.setGrantId(grantId);
@@ -133,7 +132,7 @@ public class GrantRequiredAction implements RequiredActionProvider {
 
             } else {
                 userGrantModel = grantService.getGrantByGrantId(realm, grantId, client.getClientId());
-                if (userGrantModel == null || !StringUtils.equals(user.getId(), userGrantModel.getUserId())) {
+                if (userGrantModel == null || !user.getId().equals(userGrantModel.getUserId())) {
                     cleanSession(context, RequiredActionContext.KcActionStatus.ERROR);
                     context.failure();
                     event.error(Errors.INVALID_GRANT_ID);
