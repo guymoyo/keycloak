@@ -19,7 +19,6 @@
 
 package org.keycloak.protocol.oidc.grants.management;
 
-import org.apache.commons.lang.StringUtils;
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.annotations.cache.NoCache;
 import org.jboss.resteasy.spi.HttpRequest;
@@ -34,14 +33,7 @@ import org.keycloak.crypto.SignatureVerifierContext;
 import org.keycloak.events.Errors;
 import org.keycloak.events.EventBuilder;
 import org.keycloak.events.EventType;
-import org.keycloak.models.ClientModel;
-import org.keycloak.models.GrantService;
-import org.keycloak.models.KeycloakSession;
-import org.keycloak.models.RealmModel;
-import org.keycloak.models.UserGrantModel;
-import org.keycloak.models.UserSessionModel;
-import org.keycloak.models.UserProvider;
-import org.keycloak.models.UserModel;
+import org.keycloak.models.*;
 import org.keycloak.models.utils.KeycloakModelUtils;
 import org.keycloak.protocol.oidc.OIDCAdvancedConfigWrapper;
 import org.keycloak.protocol.oidc.OIDCLoginProtocol;
@@ -99,8 +91,6 @@ public class GrantEndpoint implements RealmResourceProvider {
     private Cors cors;
 
 
-
-
     public GrantEndpoint(RealmModel realm, EventBuilder event) {
         this.realm = realm;
         this.event = event;
@@ -139,9 +129,9 @@ public class GrantEndpoint implements RealmResourceProvider {
 
 
         return Response.status(Response.Status.OK)
-                .entity(grant)
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .build();
+                       .entity(grant)
+                       .type(MediaType.APPLICATION_JSON_TYPE)
+                       .build();
     }
 
     /**
@@ -165,12 +155,12 @@ public class GrantEndpoint implements RealmResourceProvider {
 
         GrantService grantService = session.getProvider(GrantService.class);
         try {
-                UserGrantModel grant = grantService.getGrantByGrantId(realm, grantId, clientModel.getClientId());
-                UserProvider userProvider = session.getProvider(UserProvider.class);
-                user = userProvider.getUserById(realm, grant.getUserId());
-                revokeClient();
+            UserGrantModel grant = grantService.getGrantByGrantId(realm, grantId, clientModel.getClientId());
+            UserProvider userProvider = session.getProvider(UserProvider.class);
+            user = userProvider.getUserById(realm, grant.getUserId());
+            revokeClient();
 
-                grantService.revokeGrantByGrantId(realm, grantId, clientModel.getClientId());
+            grantService.revokeGrantByGrantId(realm, grantId, clientModel.getClientId());
         } catch (Exception e) {
             throw new CorsErrorResponseException(cors.allowAllOrigins(), OAuthErrorException.INVALID_REQUEST, "Grant not found", Response.Status.BAD_REQUEST);
         }
@@ -215,7 +205,7 @@ public class GrantEndpoint implements RealmResourceProvider {
                 throw throwErrorResponseException(Errors.INVALID_REQUEST, "Client not allowed.", Response.Status.FORBIDDEN);
             }
 
-            return  client;
+            return client;
         } catch (ErrorResponseException ere) {
             throw ere;
         } catch (Exception e) {
@@ -251,7 +241,7 @@ public class GrantEndpoint implements RealmResourceProvider {
         AccessToken token;
         try {
             TokenVerifier<AccessToken> verifier = TokenVerifier.create(tokenString, AccessToken.class).withDefaultChecks()
-                    .realmUrl(Urls.realmIssuer(session.getContext().getUri().getBaseUri(), realm.getName()));
+                                                          .realmUrl(Urls.realmIssuer(session.getContext().getUri().getBaseUri(), realm.getName()));
 
             SignatureVerifierContext verifierContext = session.getProvider(SignatureProvider.class, verifier.getHeader().getAlgorithm().name()).verifier(verifier.getHeader().getKeyId());
             verifier.verifierContext(verifierContext);
@@ -259,7 +249,7 @@ public class GrantEndpoint implements RealmResourceProvider {
             token = verifier.verify().getToken();
 
             String scope = token.getScope();
-            if (!StringUtils.contains(scope, grantManagementAction)) {
+            if (scope != null && !scope.contains(grantManagementAction)) {
                 event.error(Errors.INVALID_TOKEN);
                 throw newUnauthorizedErrorResponseException(OAuthErrorException.INVALID_TOKEN, "Token verification failed");
             }
@@ -283,7 +273,7 @@ public class GrantEndpoint implements RealmResourceProvider {
             throw newUnauthorizedErrorResponseException(OAuthErrorException.INVALID_TOKEN, "Token verification failed");
         }
 
-        if (!StringUtils.equals(clientId, clientModel.getClientId())) {
+        if (clientId != null && !clientId.equals(clientModel.getClientId())) {
             throw newUnauthorizedErrorResponseException(OAuthErrorException.INVALID_TOKEN, "Token verification failed");
         }
 
@@ -355,7 +345,7 @@ public class GrantEndpoint implements RealmResourceProvider {
             throw newUnauthorizedErrorResponseException(OAuthErrorException.INVALID_REQUEST, "User not found");
         }
         UserSessionModel userSession = session.sessions().createUserSession(KeycloakModelUtils.generateId(), realm, user, user.getUsername(), clientConnection.getRemoteAddr(),
-                ServiceAccountConstants.CLIENT_AUTH, false, null, null, UserSessionModel.SessionPersistenceState.TRANSIENT);
+                                                                            ServiceAccountConstants.CLIENT_AUTH, false, null, null, UserSessionModel.SessionPersistenceState.TRANSIENT);
         // attach an auth session for the client
         RootAuthenticationSessionModel rootAuthSession = session.authenticationSessions().createRootAuthenticationSession(realm);
         AuthenticationSessionModel authSession = rootAuthSession.createAuthenticationSession(client);
