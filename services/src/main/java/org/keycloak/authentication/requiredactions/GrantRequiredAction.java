@@ -114,7 +114,7 @@ public class GrantRequiredAction implements RequiredActionProvider {
 
         try {
             UserGrantModel userGrantModel;
-            if (grantId != null && !grantId.isEmpty()) {
+            if (grantId == null || grantId.isEmpty()) {
                 userGrantModel = new UserGrantModel();
                 grantId = Base64Url.encode(KeycloakModelUtils.generateSecret());
                 userGrantModel.setGrantId(grantId);
