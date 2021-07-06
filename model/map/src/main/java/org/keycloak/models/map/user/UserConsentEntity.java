@@ -37,6 +37,7 @@ public class UserConsentEntity {
     private Long createdDate;
     private Long lastUpdatedDate;
     private boolean updated;
+    private String id;
     
     private UserConsentEntity() {}
 
@@ -68,6 +69,7 @@ public class UserConsentEntity {
         UserConsentModel model = new UserConsentModel(client);
         model.setCreatedDate(entity.getCreatedDate());
         model.setLastUpdatedDate(entity.getLastUpdatedDate());
+        model.setId(entity.getId());
 
         entity.getGrantedClientScopesIds().stream()
                 .map(scopeId -> KeycloakModelUtils.findClientScopeById(realm, client, scopeId))
@@ -88,6 +90,14 @@ public class UserConsentEntity {
     public void setClientId(String clientId) {
         this.updated = !Objects.equals(this.clientId, clientId);
         this.clientId = clientId;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public Set<String> getGrantedClientScopesIds() {

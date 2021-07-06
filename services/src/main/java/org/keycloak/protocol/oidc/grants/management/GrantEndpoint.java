@@ -19,7 +19,6 @@
 
 package org.keycloak.protocol.oidc.grants.management;
 
-import org.apache.commons.lang.StringUtils;
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.annotations.cache.NoCache;
 import org.jboss.resteasy.spi.HttpRequest;
@@ -259,7 +258,7 @@ public class GrantEndpoint implements RealmResourceProvider {
             token = verifier.verify().getToken();
 
             String scope = token.getScope();
-            if (!StringUtils.contains(scope, grantManagementAction)) {
+            if (scope != null && !scope.contains(grantManagementAction)) {
                 event.error(Errors.INVALID_TOKEN);
                 throw newUnauthorizedErrorResponseException(OAuthErrorException.INVALID_TOKEN, "Token verification failed");
             }
@@ -283,7 +282,7 @@ public class GrantEndpoint implements RealmResourceProvider {
             throw newUnauthorizedErrorResponseException(OAuthErrorException.INVALID_TOKEN, "Token verification failed");
         }
 
-        if (!StringUtils.equals(clientId, clientModel.getClientId())) {
+        if (clientId != null && !clientId.equals(clientModel.getClientId())) {
             throw newUnauthorizedErrorResponseException(OAuthErrorException.INVALID_TOKEN, "Token verification failed");
         }
 

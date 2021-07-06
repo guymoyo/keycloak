@@ -21,7 +21,7 @@ import org.keycloak.provider.Provider;
 
 public interface GrantService extends Provider {
 
-    void revokeGrantByGrantId(RealmModel realm, String grantId, String clientId) throws Exception;
+    boolean revokeGrantByGrantId(RealmModel realm, String grantId, String clientId) throws Exception;
 
     UserGrantModel getGrantByGrantId(RealmModel realm, String grantId, String clientId) throws Exception;
 
@@ -29,4 +29,5 @@ public interface GrantService extends Provider {
 
     void updateUserGrant(RealmModel realm, UserGrantModel userGrantModel) throws Exception;
 
+    boolean revokeGrantByClientIdAndUserId(RealmModel realm, String userId, String clientId);
 }

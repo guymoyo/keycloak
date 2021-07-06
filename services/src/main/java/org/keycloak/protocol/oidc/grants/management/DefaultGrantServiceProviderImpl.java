@@ -25,6 +25,7 @@ import org.keycloak.util.JsonSerialization;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class DefaultGrantServiceProviderImpl implements GrantService {
 
@@ -39,18 +40,42 @@ public class DefaultGrantServiceProviderImpl implements GrantService {
     }
 
     @Override
-    public void revokeGrantByGrantId(RealmModel realm, String grantId, String clientId) throws Exception {
-        GrantsRepresentation grantsRepresentation = getGrantsRepresentation(realm);
-        List<UserGrantModel> grants = grantsRepresentation.getGrants();
-        UserGrantModel userGrantModel = grants.stream()
-                .filter(grant -> grant.getGrantId().equals(grantId))
-                .findFirst().orElse(null);
+    public boolean revokeGrantByGrantId(RealmModel realm, String grantId, String clientId) {
+        try {
+            GrantsRepresentation grantsRepresentation = getGrantsRepresentation(realm);
+            List<UserGrantModel> grants = grantsRepresentation.getGrants();
+            UserGrantModel userGrantModel = grants.stream()
+                    .filter(grant -> grant.getGrantId().equals(grantId))
+                    .findFirst().orElse(null);
 
-        if ( userGrantModel != null) {
-            grants.remove(userGrantModel);
+            if ( userGrantModel != null) {
+                grants.remove(userGrantModel);
+                setGrantsJsonString(realm, convertGrantsRepresentationToJson(grantsRepresentation));
+                return true;
+            } else {
+                return false;
+            }
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    @Override
+    public boolean revokeGrantByClientIdAndUserId(RealmModel realm, String userId, String clientId) {
+        try {
+            GrantsRepresentation grantsRepresentation = getGrantsRepresentation(realm);
+            List<UserGrantModel> grants = grantsRepresentation.getGrants();
+            List<UserGrantModel> userGrantsToRevoke = grants.stream()
+                    .filter(grant -> grant.getUserId().equals(userId) && grant.getClientId().equals(clientId))
+                    .collect(Collectors.toList());
+
+            userGrantsToRevoke.forEach( grantToRevoke -> {
+                grants.remove(grantToRevoke);
+            });
             setGrantsJsonString(realm, convertGrantsRepresentationToJson(grantsRepresentation));
-        } else {
-            throw new Exception();
+            return true;
+        } catch (Exception e) {
+            return false;
         }
     }
 

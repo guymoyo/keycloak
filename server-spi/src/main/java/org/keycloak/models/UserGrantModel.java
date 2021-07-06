@@ -27,6 +27,7 @@ public class UserGrantModel {
     private String userId;
     private Long createdDate;
     private Long lastUpdatedDate;
+    private String consentId;
 
     public String getClientId() {
         return clientId;
@@ -90,6 +91,14 @@ public class UserGrantModel {
 
     public void setLastUpdatedDate(Long lastUpdatedDate) {
         this.lastUpdatedDate = lastUpdatedDate;
+    }
+
+    public String getConsentId() {
+        return consentId;
+    }
+
+    public void setConsentId(String consentId) {
+        this.consentId = consentId;
     }
 
     public UserGrantModel(String scopes, String claims, String authorizationDetails, String grantId, Long createdDate, Long lastUpdatedDate) {

@@ -17,7 +17,6 @@
 
 package org.keycloak.authentication.requiredactions;
 
-import org.apache.commons.lang.StringUtils;
 import org.jboss.logging.Logger;
 import org.keycloak.authentication.AuthenticationProcessor;
 import org.keycloak.authentication.RequiredActionContext;
@@ -36,6 +35,7 @@ import org.keycloak.protocol.oidc.OIDCLoginProtocol;
 import org.keycloak.services.managers.AuthenticationManager;
 import org.keycloak.sessions.AuthenticationSessionModel;
 
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
@@ -44,6 +44,9 @@ public class GrantRequiredAction implements RequiredActionProvider {
     private static final Logger logger = Logger.getLogger(GrantRequiredAction.class);
     public static final String GRANT_ID_SUPPORTED = "grantIdSupported";
     public static final String GRANT_ACCEPTED = "grantAccepted";
+
+    @Context
+    protected KeycloakSession session;
 
     @Override
     public void evaluateTriggers(RequiredActionContext context) {
@@ -63,9 +66,6 @@ public class GrantRequiredAction implements RequiredActionProvider {
 
         ClientModel client = context.getAuthenticationSession().getClient();
         boolean clientGrantIdRequired = OIDCAdvancedConfigWrapper.fromClientModel(client).getGrantIdRequired();
-        //TODO
-        //String authorizationDetails = context.getAuthenticationSession().getAuthNote(OIDCLoginProtocol.AUTHORIZATION_DETAILS_PARAM);
-        //if (StringUtils.isNotEmpty(authorizationDetails)) ...
 
         if (GrantIdSupportedOptions.ALWAYS.equals(grantIdSupportedOption)
                 || (GrantIdSupportedOptions.OPTIONAL.equals(grantIdSupportedOption) && clientGrantIdRequired)) {
@@ -111,12 +111,36 @@ public class GrantRequiredAction implements RequiredActionProvider {
         GrantService grantService = context.getSession().getProvider(GrantService.class);
         long currentTime = Time.currentTimeMillis();
 
+        UserConsentModel grantedConsent = session.users().getConsentByClient(realm, user.getId(), client.getId());
+        if (grantedConsent == null) {
+            grantedConsent = new UserConsentModel(client);
+            session.users().addConsent(realm, user.getId(), grantedConsent);
+        }
+
+        // Update may not be required if all clientScopes were already granted (May happen for example with prompt=consent)
+        boolean updateConsentRequired = false;
+        for (String clientScopeId : authSession.getClientScopes()) {
+            ClientScopeModel clientScope = KeycloakModelUtils.findClientScopeById(realm, client, clientScopeId);
+            if (clientScope != null) {
+                if (!grantedConsent.isClientScopeGranted(clientScope) && clientScope.isDisplayOnConsentScreen()) {
+                    grantedConsent.addGrantedClientScope(clientScope);
+                    updateConsentRequired = true;
+                }
+            } else {
+                logger.warnf("Client scope or client with ID '%s' not found", clientScopeId);
+            }
+        }
+        if (updateConsentRequired) {
+            session.users().updateConsent(realm, user.getId(), grantedConsent);
+        }
+
         try {
             UserGrantModel userGrantModel;
-            if (StringUtils.isEmpty(grantId)) {
+            if (grantId == null || grantId.length() == 0) {
                 userGrantModel = new UserGrantModel();
                 grantId = Base64Url.encode(KeycloakModelUtils.generateSecret());
                 userGrantModel.setGrantId(grantId);
+                userGrantModel.setConsentId(grantedConsent.getId());
                 userGrantModel.setClientId(client.getClientId());
                 userGrantModel.setUserId(user.getId());
                 userGrantModel.setScopes(authSession.getAuthNote(OIDCLoginProtocol.SCOPE_PARAM));
@@ -130,7 +154,7 @@ public class GrantRequiredAction implements RequiredActionProvider {
 
             } else {
                 userGrantModel = grantService.getGrantByGrantId(realm, grantId, client.getClientId());
-                if (userGrantModel == null || !StringUtils.equals(user.getId(), userGrantModel.getUserId())) {
+                if (userGrantModel == null || !userGrantModel.getUserId().equals(user.getId())) {
                     cleanSession(context, RequiredActionContext.KcActionStatus.ERROR);
                     context.failure();
                     event.error(Errors.INVALID_GRANT_ID);

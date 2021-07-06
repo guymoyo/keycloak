@@ -37,12 +37,7 @@ import org.keycloak.events.Errors;
 import org.keycloak.events.EventBuilder;
 import org.keycloak.events.EventType;
 import org.keycloak.headers.SecurityHeadersProvider;
-import org.keycloak.models.ClientModel;
-import org.keycloak.models.KeycloakSession;
-import org.keycloak.models.RealmModel;
-import org.keycloak.models.TokenRevocationStoreProvider;
-import org.keycloak.models.UserModel;
-import org.keycloak.models.UserSessionModel;
+import org.keycloak.models.*;
 import org.keycloak.protocol.oidc.TokenManager;
 import org.keycloak.protocol.oidc.utils.AuthorizeClientUtil;
 import org.keycloak.representations.AccessToken;
@@ -231,6 +226,10 @@ public class TokenRevocationEndpoint {
 
     private void revokeClient() {
         session.users().revokeConsentForClient(realm, user.getId(), client.getId());
+
+        GrantService grantService = session.getProvider(GrantService.class);
+        grantService.revokeGrantByClientIdAndUserId(realm, user.getId(), client.getClientId());
+
         if (TokenUtil.TOKEN_TYPE_OFFLINE.equals(token.getType())) {
             new UserSessionManager(session).revokeOfflineToken(user, client);
         }
