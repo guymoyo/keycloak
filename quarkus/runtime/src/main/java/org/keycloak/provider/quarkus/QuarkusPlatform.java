@@ -17,14 +17,23 @@
 
 package org.keycloak.provider.quarkus;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.FileAttribute;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.jboss.logging.Logger;
 import org.keycloak.platform.Platform;
 import org.keycloak.platform.PlatformProvider;
+import org.keycloak.util.Environment;
 
 public class QuarkusPlatform implements PlatformProvider {
+
+    private static final Logger log = Logger.getLogger(QuarkusPlatform.class);
 
     public static void addInitializationException(Throwable throwable) {
         QuarkusPlatform platform = (QuarkusPlatform) Platform.getPlatform();
@@ -68,6 +77,7 @@ public class QuarkusPlatform implements PlatformProvider {
 
     private AtomicBoolean started = new AtomicBoolean(false);
     private List<Throwable> deferredExceptions = new CopyOnWriteArrayList<>();
+    private File tmpDir;
 
     @Override
     public void onStartup(Runnable startupHook) {
@@ -108,4 +118,47 @@ public class QuarkusPlatform implements PlatformProvider {
         return deferredExceptions;
     }
 
+    @Override
+    public File getTmpDirectory() {
+        if (tmpDir == null) {
+            String homeDir = Environment.getHomeDir();
+
+            File tmpDir;
+            if (homeDir == null) {
+                // Should happen just in the unit tests
+                try {
+                    // Use "tmp" directory in case it points to the "target" directory (which is usually the case with quarkus unit tests)
+                    // Trying to use "target" subdirectory to avoid the situation when separate subdirectory will be created in the "/tmp" for each build and hence "/tmp" directory being swamped with many subdirectories
+                    String tmpDirProp = System.getProperty("java.io.tmpdir");
+                    if (tmpDirProp == null || !tmpDirProp.endsWith("target")) {
+                        // Fallback to "target" inside "user.dir"
+                        String userDirProp = System.getProperty("user.dir");
+                        if (userDirProp != null) {
+                            File userDir = new File(userDirProp, "target");
+                            if (userDir.exists()) {
+                                tmpDirProp = userDir.getAbsolutePath();
+                            }
+                        }
+                    }
+                    // Finally fallback to system tmp directory. Always create dedicated directory for current user
+                    Path path = tmpDirProp != null ? Files.createTempDirectory(new File(tmpDirProp).toPath(), "keycloak-quarkus-tmp") :
+                            Files.createTempDirectory("keycloak-quarkus-tmp");
+                    tmpDir = path.toFile();
+                } catch (IOException ioex) {
+                    throw new RuntimeException("It was not possible to create temporary directory keycloak-quarkus-tmp", ioex);
+                }
+            } else {
+                tmpDir = new File(homeDir, "tmp");
+                tmpDir.mkdir();
+            }
+
+            if (tmpDir.isDirectory()) {
+                this.tmpDir = tmpDir;
+                log.debugf("Using server tmp directory: %s", tmpDir.getAbsolutePath());
+            } else {
+                throw new RuntimeException("Temporary directory " + tmpDir.getAbsolutePath() + " does not exists and it was not possible to create it.");
+            }
+        }
+        return tmpDir;
+    }
 }

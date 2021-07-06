@@ -48,6 +48,8 @@ import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
 
 import java.sql.Connection;
+import java.util.concurrent.atomic.AtomicBoolean;
+import liquibase.changelog.ChangeLogHistoryServiceFactory;
 
 /**
  * @author <a href="mailto:mposolda@redhat.com">Marek Posolda</a>
@@ -60,15 +62,18 @@ public class DefaultLiquibaseConnectionProvider implements LiquibaseConnectionPr
 
     private int indexCreationThreshold;
 
-    private volatile boolean initialized = false;
+    private static final AtomicBoolean INITIALIZATION = new AtomicBoolean(false);
     
     @Override
     public LiquibaseConnectionProvider create(KeycloakSession session) {
-        if (!initialized) {
-            synchronized (this) {
-                if (!initialized) {
+        if (! INITIALIZATION.get()) {
+            // We need critical section synchronized on some static final field, otherwise
+            // e.g. several Undertows or parallel model tests could attempt initializing Liquibase
+            // in the same JVM at the same time which leads to concurrency failures
+            synchronized (INITIALIZATION) {
+                if (! INITIALIZATION.get()) {
                     baseLiquibaseInitialization();
-                    initialized = true;
+                    INITIALIZATION.set(true);
                 }
             }
         }
@@ -117,13 +122,15 @@ public class DefaultLiquibaseConnectionProvider implements LiquibaseConnectionPr
         // Use "SELECT FOR UPDATE" for locking database
         SqlGeneratorFactory.getInstance().register(new CustomLockDatabaseChangeLogGenerator());
 
+        ChangeLogHistoryServiceFactory.getInstance().register(new CustomChangeLogHistoryService());
+
         // Adding CustomCreateIndexChange for handling conditional indices creation
         ChangeFactory.getInstance().register(CustomCreateIndexChange.class);
     }
 
     @Override
     public void init(Config.Scope config) {
-        indexCreationThreshold = config.getInt("indexCreationThreshold", 100000);
+        indexCreationThreshold = config.getInt("indexCreationThreshold", 300000);
         logger.debugf("indexCreationThreshold is %d", indexCreationThreshold);
     }
 

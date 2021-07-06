@@ -34,6 +34,7 @@ import org.keycloak.jose.jwk.JWK;
 import org.keycloak.keys.loader.PublicKeyStorageManager;
 import org.keycloak.models.AuthenticatedClientSessionModel;
 import org.keycloak.models.ClientModel;
+import org.keycloak.models.Constants;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.TokenManager;
@@ -52,8 +53,6 @@ import java.security.Key;
 public class DefaultTokenManager implements TokenManager {
 
     private static final Logger logger = Logger.getLogger(DefaultTokenManager.class);
-
-    private static String DEFAULT_ALGORITHM_NAME = Algorithm.RS256;
 
     private final KeycloakSession session;
 
@@ -140,6 +139,8 @@ public class DefaultTokenManager implements TokenManager {
                 return getSignatureAlgorithm(OIDCConfigAttributes.ID_TOKEN_SIGNED_RESPONSE_ALG);
             case USERINFO:
                 return getSignatureAlgorithm(OIDCConfigAttributes.USER_INFO_RESPONSE_SIGNATURE_ALG);
+            case AUTHORIZATION_RESPONSE:
+                return getSignatureAlgorithm(OIDCConfigAttributes.AUTHORIZATION_SIGNED_RESPONSE_ALG);
             default:
                 throw new RuntimeException("Unknown token type");
         }
@@ -159,7 +160,7 @@ public class DefaultTokenManager implements TokenManager {
             return algorithm;
         }
 
-        return DEFAULT_ALGORITHM_NAME;
+        return Constants.DEFAULT_SIGNATURE_ALGORITHM;
     }
 
     @Override
@@ -212,6 +213,8 @@ public class DefaultTokenManager implements TokenManager {
             case ID:
             case LOGOUT:
                 return getCekManagementAlgorithm(OIDCConfigAttributes.ID_TOKEN_ENCRYPTED_RESPONSE_ALG);
+            case AUTHORIZATION_RESPONSE:
+                return getCekManagementAlgorithm(OIDCConfigAttributes.AUTHORIZATION_ENCRYPTED_RESPONSE_ALG);
             default:
                 return null;
         }
@@ -233,6 +236,8 @@ public class DefaultTokenManager implements TokenManager {
             case ID:
             case LOGOUT:
                 return getEncryptAlgorithm(OIDCConfigAttributes.ID_TOKEN_ENCRYPTED_RESPONSE_ENC);
+            case AUTHORIZATION_RESPONSE:
+                return getEncryptAlgorithm(OIDCConfigAttributes.AUTHORIZATION_ENCRYPTED_RESPONSE_ENC);
             default:
                 return null;
         }

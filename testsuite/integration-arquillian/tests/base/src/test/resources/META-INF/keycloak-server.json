@@ -36,6 +36,17 @@
         "event-queue": {}
     },
 
+    "deploymentState": {
+        "provider": "${keycloak.deploymentState.provider:jpa}",
+        "map": {
+            "resourcesVersionSeed": "1JZ379bzyOCFA"
+        }
+    },
+
+    "dblock": {
+        "provider": "${keycloak.dblock.provider:jpa}"
+    },
+
     "realm": {
         "provider": "${keycloak.realm.provider:jpa}"
     },
@@ -61,13 +72,26 @@
     },
 
     "authenticationSessions": {
-        "provider": "${keycloak.authSession.provider:infinispan}"
+        "provider": "${keycloak.authSession.provider:infinispan}",
+        "infinispan": {
+            "authSessionsLimit": "${keycloak.authSessions.limit:300}"
+        }
+    },
+
+    "userSessions": {
+        "provider": "${keycloak.userSession.provider:infinispan}"
+    },
+
+    "loginFailure": {
+        "provider": "${keycloak.loginFailure.provider:infinispan}"
     },
 
     "mapStorage": {
-        "provider": "${keycloak.mapStorage.provider:concurrenthashmap}",
+        "provider": "${keycloak.mapStorage.provider:}",
         "concurrenthashmap": {
-            "dir": "${project.build.directory:target}"
+            "dir": "${project.build.directory:target}",
+            "keyType.realms": "string",
+            "keyType.authz-resource-servers": "string"
         }
     },
 
@@ -91,10 +115,6 @@
         "mem": {
             "maxSize": 20000
         }
-    },
-
-    "userSessions": {
-        "provider" : "${keycloak.userSessions.provider:infinispan}"
     },
 
     "timer": {
@@ -128,7 +148,7 @@
 
     "connectionsHttpClient": {
         "default": {
-            "max-connection-idle-time-millis": 100
+            "reuse-connections": false
         }
     },
 
@@ -199,7 +219,8 @@
     },
 
     "userProfile": {
-        "legacy-user-profile": {
+        "provider": "${keycloak.userProfile.provider:}",
+        "declarative-user-profile": {
             "read-only-attributes": [ "deniedFoo", "deniedBar*", "deniedSome/thing", "deniedsome*thing" ],
             "admin-read-only-attributes": [ "deniedSomeAdmin" ]
         }
@@ -235,5 +256,9 @@
             "dir": "target/dependency/vault",
             "enabled": "${keycloak.vault.files-plaintext.provider.enabled:false}"
         }
+    },
+
+    "saml-artifact-resolver": {
+        "provider": "${keycloak.saml-artifact-resolver.provider:default}"
     }
 }
