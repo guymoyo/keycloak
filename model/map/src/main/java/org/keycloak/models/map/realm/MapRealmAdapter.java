@@ -29,6 +29,7 @@ import org.keycloak.common.enums.SslRequired;
 import org.keycloak.component.ComponentFactory;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.component.ComponentValidationException;
+import org.keycloak.enums.GrantIdSupportedOptions;
 import org.keycloak.models.AuthenticationExecutionModel;
 import org.keycloak.models.AuthenticationFlowModel;
 import org.keycloak.models.AuthenticatorConfigModel;
@@ -74,6 +75,7 @@ public abstract class MapRealmAdapter<K> extends AbstractRealmModel<MapRealmEnti
     private static final String MINIMUM_QUICK_LOGIN_WAIT_SECONDS = "minimumQuickLoginWaitSeconds";
     private static final String MAX_DELTA_SECONDS = "maxDeltaTimeSeconds";
     private static final String FAILURE_FACTOR = "failureFactor";
+    private static final String GRANT_ID_SUPPORTED = "grantIdSupported";
 
     private PasswordPolicy passwordPolicy;
 
@@ -169,6 +171,20 @@ public abstract class MapRealmAdapter<K> extends AbstractRealmModel<MapRealmEnti
     @Override
     public void setEditUsernameAllowed(boolean editUsernameAllowed) {
         entity.setEditUsernameAllowed(editUsernameAllowed);
+    }
+
+    @Override
+    public void setGrantIdSupported(GrantIdSupportedOptions grantIdSupported) {
+        setAttribute(GRANT_ID_SUPPORTED, grantIdSupported.name());
+    }
+
+    @Override
+    public GrantIdSupportedOptions getGrantIdSupported() {
+        String grantIdSupported = getAttribute(GRANT_ID_SUPPORTED);
+        if (grantIdSupported != null) {
+            return GrantIdSupportedOptions.valueOf(grantIdSupported);
+        }
+        return GrantIdSupportedOptions.NONE;
     }
 
     @Override
