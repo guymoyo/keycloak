@@ -20,7 +20,6 @@ package org.keycloak.models;
 import java.util.Comparator;
 import org.keycloak.common.enums.SslRequired;
 import org.keycloak.component.ComponentModel;
-import org.keycloak.enums.GrantIdSupportedOptions;
 import org.keycloak.provider.Provider;
 import org.keycloak.provider.ProviderEvent;
 import org.keycloak.storage.SearchableModelField;
@@ -30,11 +29,9 @@ import org.keycloak.storage.client.ClientStorageProvider;
 import org.keycloak.storage.client.ClientStorageProviderModel;
 import org.keycloak.storage.role.RoleStorageProvider;
 import org.keycloak.storage.role.RoleStorageProviderModel;
-import org.keycloak.utils.StringUtil;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -125,10 +122,6 @@ public interface RealmModel extends RoleContainerModel {
     boolean isEditUsernameAllowed();
 
     void setEditUsernameAllowed(boolean editUsernameAllowed);
-
-    void setGrantIdSupported(GrantIdSupportedOptions grantIdSupported);
-
-    GrantIdSupportedOptions getGrantIdSupported();
 
     boolean isUserManagedAccessAllowed();
 

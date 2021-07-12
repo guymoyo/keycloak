@@ -20,7 +20,6 @@ package org.keycloak.protocol.oidc.representations;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.keycloak.enums.GrantIdSupportedOptions;
 
 import java.util.HashMap;
 import java.util.List;
@@ -152,8 +151,12 @@ public class OIDCConfigurationRepresentation {
     @JsonProperty("backchannel_logout_session_supported")
     private Boolean backchannelLogoutSessionSupported;
 
-    @JsonProperty("grant_id_supported")
-    private GrantIdSupportedOptions grantIdSupported;
+    // OAuth Authorization Server Metadata for fapi-grant-management
+    @JsonProperty("grant_management_action_required")
+    private Boolean grantManagementActionRequired;
+
+    @JsonProperty("grant_management_actions_supported")
+    private List<String> grantManagementActionsSupported;
 
     @JsonProperty("grant_management_endpoint")
     private String grantManagementEndpoint;
@@ -178,12 +181,20 @@ public class OIDCConfigurationRepresentation {
 
     protected Map<String, Object> otherClaims = new HashMap<String, Object>();
 
-    public GrantIdSupportedOptions getGrantIdSupported() {
-        return grantIdSupported;
+    public Boolean getGrantManagementActionRequired() {
+        return grantManagementActionRequired;
     }
 
-    public void setGrantIdSupported(GrantIdSupportedOptions grantIdSupported) {
-        this.grantIdSupported = grantIdSupported;
+    public void setGrantManagementActionRequired(Boolean grantManagementActionRequired) {
+        this.grantManagementActionRequired = grantManagementActionRequired;
+    }
+
+    public List<String> getGrantManagementActionsSupported() {
+        return grantManagementActionsSupported;
+    }
+
+    public void setGrantManagementActionsSupported(List<String> grantManagementActionsSupported) {
+        this.grantManagementActionsSupported = grantManagementActionsSupported;
     }
 
     public String getGrantManagementEndpoint() {

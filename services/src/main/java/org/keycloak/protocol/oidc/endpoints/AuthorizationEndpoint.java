@@ -35,7 +35,6 @@ import org.keycloak.protocol.AuthorizationEndpointBase;
 import org.keycloak.protocol.oidc.OIDCLoginProtocol;
 import org.keycloak.protocol.oidc.endpoints.request.AuthorizationEndpointRequest;
 import org.keycloak.protocol.oidc.endpoints.request.AuthorizationEndpointRequestParserProcessor;
-import org.keycloak.protocol.oidc.grants.management.GrantEndpoint;
 import org.keycloak.protocol.oidc.grants.device.endpoints.DeviceEndpoint;
 import org.keycloak.protocol.oidc.utils.OIDCRedirectUriBuilder;
 import org.keycloak.protocol.oidc.utils.OIDCResponseMode;
@@ -105,16 +104,6 @@ public class AuthorizationEndpoint extends AuthorizationEndpointBase {
     public Response buildGet() {
         logger.trace("Processing @GET request");
         return process(session.getContext().getUri().getQueryParameters());
-    }
-
-    /**
-     * Grant management for OAuth 2.0 endpoint
-     */
-    @Path("grants")
-    public Object grants() {
-        GrantEndpoint endpoint = new GrantEndpoint(realm, event);
-        ResteasyProviderFactory.getInstance().injectProperties(endpoint);
-        return endpoint;
     }
 
     /**
@@ -293,6 +282,7 @@ public class AuthorizationEndpoint extends AuthorizationEndpointBase {
         if (request.getDisplay() != null) authenticationSession.setAuthNote(OAuth2Constants.DISPLAY, request.getDisplay());
         if (request.getUiLocales() != null) authenticationSession.setAuthNote(LocaleSelectorProvider.CLIENT_REQUEST_LOCALE, request.getUiLocales());
         if(request.getGrantId() != null) authenticationSession.setAuthNote(OIDCLoginProtocol.GRANT_ID_PARAM, request.getGrantId());
+        if(request.getGrantManagementAction() != null) authenticationSession.setAuthNote(OIDCLoginProtocol.GRANT_MANAGEMENT_ACTION, request.getGrantManagementAction());
 
         // https://tools.ietf.org/html/rfc7636#section-4
         if (request.getCodeChallenge() != null) authenticationSession.setClientNote(OIDCLoginProtocol.CODE_CHALLENGE_PARAM, request.getCodeChallenge());

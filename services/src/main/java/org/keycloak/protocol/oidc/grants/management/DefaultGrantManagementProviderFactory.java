@@ -18,21 +18,21 @@
 package org.keycloak.protocol.oidc.grants.management;
 
 import org.keycloak.Config.Scope;
-import org.keycloak.models.GrantService;
-import org.keycloak.models.GrantServiceProviderFactory;
+import org.keycloak.models.GrantManagementProvider;
+import org.keycloak.models.GrantManagementProviderFactory;
 import org.keycloak.models.KeycloakContext;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.KeycloakSessionFactory;
 
 
-public class DefaultGrantServiceProviderFactoryImpl implements GrantServiceProviderFactory {
+public class DefaultGrantManagementProviderFactory implements GrantManagementProviderFactory {
 
     @Override
-    public GrantService create(KeycloakSession session) {
+    public GrantManagementProvider create(KeycloakSession session) {
         KeycloakContext context = session.getContext();
         RealmModel realm = context.getRealm();
-        return new DefaultGrantServiceProviderImpl(session, realm);
+        return new DefaultGrantManagementProvider(session, realm);
     }
 
     @Override
@@ -52,7 +52,7 @@ public class DefaultGrantServiceProviderFactoryImpl implements GrantServiceProvi
 
     @Override
     public String getId() {
-        return "DefaultGrantService";
+        return "DefaultGrantManagementProvider";
     }
 
 }

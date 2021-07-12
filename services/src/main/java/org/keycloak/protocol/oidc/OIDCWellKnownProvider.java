@@ -25,16 +25,13 @@ import org.keycloak.crypto.CekManagementProvider;
 import org.keycloak.crypto.ClientSignatureVerifierProvider;
 import org.keycloak.crypto.ContentEncryptionProvider;
 import org.keycloak.crypto.SignatureProvider;
-import org.keycloak.enums.GrantIdSupportedOptions;
 import org.keycloak.jose.jws.Algorithm;
-import org.keycloak.models.CibaConfig;
-import org.keycloak.models.ClientScopeModel;
-import org.keycloak.models.KeycloakSession;
-import org.keycloak.models.RealmModel;
+import org.keycloak.models.*;
 import org.keycloak.protocol.oidc.endpoints.AuthorizationEndpoint;
 import org.keycloak.protocol.oidc.endpoints.TokenEndpoint;
 import org.keycloak.protocol.oidc.grants.ciba.CibaGrantType;
 import org.keycloak.protocol.oidc.grants.device.endpoints.DeviceEndpoint;
+import org.keycloak.protocol.oidc.grants.management.GrantManagementRootEndpoint;
 import org.keycloak.protocol.oidc.par.endpoints.ParEndpoint;
 import org.keycloak.protocol.oidc.representations.OIDCConfigurationRepresentation;
 import org.keycloak.protocol.oidc.utils.OIDCResponseType;
@@ -180,8 +177,9 @@ public class OIDCWellKnownProvider implements WellKnownProvider {
         config.setBackchannelLogoutSupported(true);
         config.setBackchannelLogoutSessionSupported(true);
 
-        config.setGrantIdSupported(getGrantIdSupportedOption());
-        config.setGrantManagementEndpoint(backendUriBuilder.clone().path(OIDCLoginProtocolService.class, "auth").path(AuthorizationEndpoint.class, "grants").build(realm.getName(), OIDCLoginProtocol.LOGIN_PROTOCOL).toString());
+        config.setGrantManagementActionRequired(false);
+        config.setGrantManagementActionsSupported(Constants.GRANT_MANAGEMENT_ACTIONS);
+        config.setGrantManagementEndpoint(GrantManagementRootEndpoint.grantManagementUrl(backendUriInfo.getBaseUriBuilder()).build(realm.getName()).toString());
 
         config.setBackchannelTokenDeliveryModesSupported(DEFAULT_BACKCHANNEL_TOKEN_DELIVERY_MODES_SUPPORTED);
         config.setBackchannelAuthenticationEndpoint(CibaGrantType.authorizationUrl(backendUriInfo.getBaseUriBuilder()).build(realm.getName()).toString());
@@ -199,15 +197,6 @@ public class OIDCWellKnownProvider implements WellKnownProvider {
 
     private static List<String> list(String... values) {
         return Arrays.asList(values);
-    }
-
-    private GrantIdSupportedOptions getGrantIdSupportedOption() {
-        String grantIdSupportedOptionAttr = session.getContext().getRealm().getAttribute("grantIdSupported");
-        if (grantIdSupportedOptionAttr == null) {
-            return GrantIdSupportedOptions.NONE;
-        } else {
-            return GrantIdSupportedOptions.valueOf(grantIdSupportedOptionAttr);
-        }
     }
 
     private List<String> getClientAuthMethodsSupported() {

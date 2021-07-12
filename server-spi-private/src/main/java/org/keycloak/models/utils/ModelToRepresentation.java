@@ -334,8 +334,6 @@ public class ModelToRepresentation {
         rep.setAdminEventsEnabled(realm.isAdminEventsEnabled());
         rep.setAdminEventsDetailsEnabled(realm.isAdminEventsDetailsEnabled());
 
-        rep.setGrantIdSupported(realm.getGrantIdSupported());
-
         rep.setVerifyEmail(realm.isVerifyEmail());
         rep.setLoginWithEmailAllowed(realm.isLoginWithEmailAllowed());
         rep.setDuplicateEmailsAllowed(realm.isDuplicateEmailsAllowed());

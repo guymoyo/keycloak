@@ -15,4 +15,4 @@
 # limitations under the License.
 #
 
-org.keycloak.protocol.oidc.grants.management.DefaultGrantServiceProviderFactoryImpl
+org.keycloak.protocol.oidc.grants.management.DefaultGrantManagementProviderFactory

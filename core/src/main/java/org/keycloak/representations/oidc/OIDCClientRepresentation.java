@@ -96,8 +96,6 @@ public class OIDCClientRepresentation {
 
     private List<String> request_uris;
 
-    private Boolean grantIdRequired;
-
     // KEYCLOAK-6771 Certificate Bound Token
     // https://tools.ietf.org/html/draft-ietf-oauth-mtls-08#section-6.5
     private Boolean tls_client_certificate_bound_access_tokens;
@@ -460,14 +458,6 @@ public class OIDCClientRepresentation {
 
     public void setRegistrationAccessToken(String registrationAccessToken) {
         this.registration_access_token = registrationAccessToken;
-    }
-
-    public Boolean getGrantIdRequired() {
-        return grantIdRequired;
-    }
-
-    public void setGrantIdRequired(Boolean grantIdRequired) {
-        this.grantIdRequired = grantIdRequired;
     }
 
     // KEYCLOAK-6771 Certificate Bound Token

@@ -171,10 +171,6 @@ public class DescriptionConverter {
             configWrapper.setRequestUris(clientOIDC.getRequestUris());
         }
 
-        if (clientOIDC.getGrantIdRequired() != null ) {
-            configWrapper.setGrantIdRequired(clientOIDC.getGrantIdRequired());
-        }
-
         configWrapper.setTokenEndpointAuthSigningAlg(clientOIDC.getTokenEndpointAuthSigningAlg());
 
         configWrapper.setBackchannelLogoutUrl(clientOIDC.getBackchannelLogoutUri());
@@ -361,7 +357,6 @@ public class DescriptionConverter {
         if (config.getTokenEndpointAuthSigningAlg() != null) {
             response.setTokenEndpointAuthSigningAlg(config.getTokenEndpointAuthSigningAlg());
         }
-        response.setGrantIdRequired(config.getGrantIdRequired());
         response.setBackchannelLogoutUri(config.getBackchannelLogoutUrl());
         response.setBackchannelLogoutSessionRequired(config.isBackchannelLogoutSessionRequired());
         response.setBackchannelLogoutSessionRequired(config.getBackchannelLogoutRevokeOfflineTokens());

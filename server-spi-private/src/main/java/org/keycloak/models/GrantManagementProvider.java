@@ -17,8 +17,19 @@
 
 package org.keycloak.models;
 
-import org.keycloak.provider.ProviderFactory;
+import org.keycloak.provider.Provider;
 
-public interface GrantServiceProviderFactory extends ProviderFactory<GrantService> {
+public interface GrantManagementProvider extends Provider {
 
+    boolean revokeGrantByGrantId(RealmModel realm, String grantId, String clientId) throws Exception;
+
+    UserGrantModel getGrantByGrantId(RealmModel realm, String grantId) throws Exception;
+
+    UserGrantModel getGrantByGrantIdAndClientId(RealmModel realm, String grantId, String clientId) throws Exception;
+
+    void adduserGrant(RealmModel realm, UserGrantModel userGrantModel) throws Exception;
+
+    void updateUserGrant(RealmModel realm, UserGrantModel userGrantModel) throws Exception;
+
+    boolean revokeGrantByClientIdAndUserId(RealmModel realm, String userId, String clientId);
 }

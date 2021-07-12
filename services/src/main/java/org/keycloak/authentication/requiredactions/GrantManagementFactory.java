@@ -25,9 +25,9 @@ import org.keycloak.models.KeycloakSessionFactory;
 import org.keycloak.models.UserModel;
 
 
-public class GrantRequiredActionFactory implements RequiredActionFactory {
+public class GrantManagementFactory implements RequiredActionFactory {
 
-    private static final GrantRequiredAction SINGLETON = new GrantRequiredAction();
+    private static final GrantManagement SINGLETON = new GrantManagement();
 
     @Override
     public RequiredActionProvider create(KeycloakSession session) {
@@ -36,11 +36,11 @@ public class GrantRequiredActionFactory implements RequiredActionFactory {
 
 
     @Override
-    public String getId() { return UserModel.RequiredAction.GRANT_REQUIRED.name(); }
+    public String getId() { return UserModel.RequiredAction.GRANT_MANAGEMENT.name(); }
 
     @Override
     public String getDisplayText() {
-        return "Grant Required Action";
+        return "Grant Required";
     }
 
     @Override

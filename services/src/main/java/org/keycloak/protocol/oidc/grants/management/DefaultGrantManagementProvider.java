@@ -17,24 +17,19 @@
 package org.keycloak.protocol.oidc.grants.management;
 
 
-import org.keycloak.models.GrantService;
-import org.keycloak.models.KeycloakSession;
-import org.keycloak.models.RealmModel;
-import org.keycloak.models.UserGrantModel;
+import org.keycloak.models.*;
 import org.keycloak.util.JsonSerialization;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class DefaultGrantServiceProviderImpl implements GrantService {
+public class DefaultGrantManagementProvider implements GrantManagementProvider {
 
     private final KeycloakSession session;
     private final RealmModel realm;
 
-    private static String GRANTS_EXTENSION = "grants_extension";
-
-    public DefaultGrantServiceProviderImpl(KeycloakSession session, RealmModel realm) {
+    public DefaultGrantManagementProvider(KeycloakSession session, RealmModel realm) {
         this.session = session;
         this.realm = realm;
     }
@@ -45,7 +40,7 @@ public class DefaultGrantServiceProviderImpl implements GrantService {
             GrantsRepresentation grantsRepresentation = getGrantsRepresentation(realm);
             List<UserGrantModel> grants = grantsRepresentation.getGrants();
             UserGrantModel userGrantModel = grants.stream()
-                    .filter(grant -> grant.getGrantId().equals(grantId))
+                    .filter(grant -> grant.getGrantId().equals(grantId) && grant.getClientId().equals(clientId))
                     .findFirst().orElse(null);
 
             if ( userGrantModel != null) {
@@ -80,10 +75,20 @@ public class DefaultGrantServiceProviderImpl implements GrantService {
     }
 
     @Override
-    public UserGrantModel getGrantByGrantId(RealmModel realm, String grantId, String clientId) throws Exception {
+    public UserGrantModel getGrantByGrantId(RealmModel realm, String grantId) throws Exception {
         GrantsRepresentation grantsRepresentation = getGrantsRepresentation(realm);
         UserGrantModel userGrantModel = grantsRepresentation.getGrants().stream()
                 .filter(grant -> grant.getGrantId().equals(grantId))
+                .findFirst().orElse(null);
+
+        return  userGrantModel;
+    }
+
+    @Override
+    public UserGrantModel getGrantByGrantIdAndClientId(RealmModel realm, String grantId, String clientId) throws Exception {
+        GrantsRepresentation grantsRepresentation = getGrantsRepresentation(realm);
+        UserGrantModel userGrantModel = grantsRepresentation.getGrants().stream()
+                .filter(grant -> grant.getGrantId().equals(grantId) && grant.getClientId().equals(clientId))
                 .findFirst().orElse(null);
 
         return  userGrantModel;
@@ -139,10 +144,10 @@ public class DefaultGrantServiceProviderImpl implements GrantService {
     }
 
     private String getGrantsJsonString(RealmModel realm) {
-        return realm.getAttribute(GRANTS_EXTENSION);
+        return realm.getAttribute(Constants.GRANT_MANAGEMENT);
     }
 
     private void setGrantsJsonString(RealmModel realm, String json) {
-        realm.setAttribute(GRANTS_EXTENSION, json);
+        realm.setAttribute(Constants.GRANT_MANAGEMENT, json);
     }
 }

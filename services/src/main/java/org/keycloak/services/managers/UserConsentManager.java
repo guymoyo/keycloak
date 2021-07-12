@@ -22,7 +22,7 @@ import org.keycloak.models.ClientModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
-import org.keycloak.models.GrantService;
+import org.keycloak.models.GrantManagementProvider;
 
 /**
  * @author <a href="mailto:mposolda@redhat.com">Marek Posolda</a>
@@ -42,8 +42,8 @@ public class UserConsentManager {
         boolean revokedConsent = session.users().revokeConsentForClient(realm, user.getId(), client.getId());
         boolean revokedOfflineToken = new UserSessionManager(session).revokeOfflineToken(user, client);
 
-        GrantService grantService = session.getProvider(GrantService.class);
-        grantService.revokeGrantByClientIdAndUserId(realm, user.getId(), client.getClientId());
+        GrantManagementProvider grantManagementProvider = session.getProvider(GrantManagementProvider.class);
+        grantManagementProvider.revokeGrantByClientIdAndUserId(realm, user.getId(), client.getClientId());
 
         if (revokedConsent) {
             // Logout clientSessions for this user and client

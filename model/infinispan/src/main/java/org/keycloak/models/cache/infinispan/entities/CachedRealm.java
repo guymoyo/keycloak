@@ -20,7 +20,6 @@ package org.keycloak.models.cache.infinispan.entities;
 import org.keycloak.common.enums.SslRequired;
 import org.keycloak.common.util.MultivaluedHashMap;
 import org.keycloak.component.ComponentModel;
-import org.keycloak.enums.GrantIdSupportedOptions;
 import org.keycloak.models.AuthenticationExecutionModel;
 import org.keycloak.models.AuthenticationFlowModel;
 import org.keycloak.models.AuthenticatorConfigModel;
@@ -72,7 +71,6 @@ public class CachedRealm extends AbstractExtendableRevisioned {
     protected boolean resetPasswordAllowed;
     protected boolean identityFederationEnabled;
     protected boolean editUsernameAllowed;
-    protected GrantIdSupportedOptions grantIdSupported;
     //--- brute force settings
     protected boolean bruteForceProtected;
     protected boolean permanentLockout;
@@ -193,7 +191,6 @@ public class CachedRealm extends AbstractExtendableRevisioned {
         resetPasswordAllowed = model.isResetPasswordAllowed();
         identityFederationEnabled = model.isIdentityFederationEnabled();
         editUsernameAllowed = model.isEditUsernameAllowed();
-        grantIdSupported = model.getGrantIdSupported();
         //--- brute force settings
         bruteForceProtected = model.isBruteForceProtected();
         permanentLockout = model.isPermanentLockout();
@@ -420,8 +417,6 @@ public class CachedRealm extends AbstractExtendableRevisioned {
     public boolean isEditUsernameAllowed() {
         return editUsernameAllowed;
     }
-
-    public GrantIdSupportedOptions getGrantIdSupported() { return  grantIdSupported; }
 
     public String getDefaultSignatureAlgorithm() {
         return defaultSignatureAlgorithm;

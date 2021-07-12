@@ -15,11 +15,33 @@
  * limitations under the License.
  */
 
-package org.keycloak.enums;
+package org.keycloak.models;
 
+import org.keycloak.provider.Provider;
+import org.keycloak.provider.ProviderFactory;
+import org.keycloak.provider.Spi;
 
-public enum GrantIdSupportedOptions {
-    NONE,
-    OPTIONAL,
-    ALWAYS
+public class GrantManagementSpi implements Spi {
+
+    @Override
+    public boolean isInternal() {
+        return false;
+    }
+
+    @Override
+    public String getName() {
+        return "grantManagementSpi";
+    }
+
+    @Override
+    public Class<? extends Provider> getProviderClass() {
+        return GrantManagementProvider.class;
+    }
+
+    @Override
+    @SuppressWarnings("rawtypes")
+    public Class<? extends ProviderFactory> getProviderFactoryClass() {
+        return GrantManagementProviderFactory.class;
+    }
+
 }

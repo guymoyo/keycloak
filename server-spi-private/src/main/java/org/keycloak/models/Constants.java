@@ -22,6 +22,7 @@ import org.keycloak.crypto.Algorithm;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.regex.Pattern;
 
 /**
@@ -126,5 +127,15 @@ public final class Constants {
     // Client Polices Realm Attributes Keys
     public static final String CLIENT_PROFILES = "client-policies.profiles";
     public static final String CLIENT_POLICIES = "client-policies.policies";
+
+    //grants Realm Attributes Keys
+    public static final String GRANT_MANAGEMENT = "grant_management.grants";
+
+    public static final String GRANT_MANAGEMENT_ACTION_QUERY = "query";
+    public static final String GRANT_MANAGEMENT_ACTION_REVOKE = "revoke";
+    public static final String GRANT_MANAGEMENT_ACTION_UPDATE = "update";
+    public static final String GRANT_MANAGEMENT_ACTION_REPLACE = "replace";
+    public static final String GRANT_MANAGEMENT_ACTION_CREATE = "create";
+    public static final List<String> GRANT_MANAGEMENT_ACTIONS = Arrays.asList(GRANT_MANAGEMENT_ACTION_QUERY, GRANT_MANAGEMENT_ACTION_REVOKE, GRANT_MANAGEMENT_ACTION_UPDATE, GRANT_MANAGEMENT_ACTION_REPLACE, GRANT_MANAGEMENT_ACTION_CREATE);
 
 }
