@@ -58,7 +58,7 @@ public class GrantManagementRootEndpoint implements OIDCExtProvider, OIDCExtProv
      *
      * @return
      */
-    @Path("")
+    @Path("/")
     public GrantManagementQueryEndpoint queryGrant() {
         GrantManagementQueryEndpoint endpoint = new GrantManagementQueryEndpoint(session, event);
 
@@ -72,7 +72,7 @@ public class GrantManagementRootEndpoint implements OIDCExtProvider, OIDCExtProv
      *
      * @return
      */
-    @Path("")
+    @Path("/")
     public GrantManagementRevokeEndpoint revokeGrant() {
         GrantManagementRevokeEndpoint endpoint = new GrantManagementRevokeEndpoint(session, event);
 

@@ -41,7 +41,7 @@ public class GrantManagementQueryEndpoint extends AbstractGrantManagementEndpoin
         this.appAuthManager = new AppAuthManager();
     }
 
-    @Path("/{grant_id}")
+    @Path("{grant_id}")
     @GET
     @NoCache
     @Produces(MediaType.APPLICATION_JSON)

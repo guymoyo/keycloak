@@ -42,9 +42,6 @@ public class GrantManagement implements RequiredActionProvider {
     private static final Logger logger = Logger.getLogger(GrantManagement.class);
     public static final String GRANT_ACCEPTED = "grantAccepted";
 
-    @Context
-    protected KeycloakSession session;
-
     @Override
     public void evaluateTriggers(RequiredActionContext context) {
         String grantAccepted = context.getAuthenticationSession().getClientNote(GRANT_ACCEPTED);
@@ -98,10 +95,10 @@ public class GrantManagement implements RequiredActionProvider {
         GrantManagementProvider grantManagementProvider = context.getSession().getProvider(GrantManagementProvider.class);
         long currentTime = Time.currentTimeMillis();
 
-        UserConsentModel grantedConsent = session.users().getConsentByClient(realm, user.getId(), client.getId());
+        UserConsentModel grantedConsent = context.getSession().users().getConsentByClient(realm, user.getId(), client.getId());
         if (grantedConsent == null) {
             grantedConsent = new UserConsentModel(client);
-            session.users().addConsent(realm, user.getId(), grantedConsent);
+            context.getSession().users().addConsent(realm, user.getId(), grantedConsent);
         }
 
         boolean updateConsentRequired = false;
@@ -117,10 +114,10 @@ public class GrantManagement implements RequiredActionProvider {
             }
         }
         if (updateConsentRequired) {
-            session.users().updateConsent(realm, user.getId(), grantedConsent);
+            context.getSession().users().updateConsent(realm, user.getId(), grantedConsent);
         }
 
-        String grantManagementAction = context.getAuthenticationSession().getClientNote(OIDCLoginProtocol.GRANT_MANAGEMENT_ACTION);
+        String grantManagementAction = context.getAuthenticationSession().getAuthNote(OIDCLoginProtocol.GRANT_MANAGEMENT_ACTION);
         UserGrantModel userGrantModel = null;
 
         //grantId required when it is an update or replace

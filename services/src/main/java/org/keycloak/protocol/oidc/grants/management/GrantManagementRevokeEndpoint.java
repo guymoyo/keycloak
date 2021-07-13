@@ -43,7 +43,7 @@ public class GrantManagementRevokeEndpoint extends AbstractGrantManagementEndpoi
         this.appAuthManager = new AppAuthManager();
     }
 
-    @Path("/{grant_id}")
+    @Path("{grant_id}")
     @DELETE
     @NoCache
     public Response revokeGrant(@PathParam("grant_id") String grantId, @Context final HttpHeaders headers) {
