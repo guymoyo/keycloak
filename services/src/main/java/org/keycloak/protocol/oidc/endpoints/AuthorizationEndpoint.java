@@ -283,6 +283,7 @@ public class AuthorizationEndpoint extends AuthorizationEndpointBase {
         if (request.getUiLocales() != null) authenticationSession.setAuthNote(LocaleSelectorProvider.CLIENT_REQUEST_LOCALE, request.getUiLocales());
         if(request.getGrantId() != null) authenticationSession.setAuthNote(OIDCLoginProtocol.GRANT_ID_PARAM, request.getGrantId());
         if(request.getGrantManagementAction() != null) authenticationSession.setAuthNote(OIDCLoginProtocol.GRANT_MANAGEMENT_ACTION, request.getGrantManagementAction());
+        if(request.getAuthorizationDetails() != null) authenticationSession.setAuthNote(OIDCLoginProtocol.AUTHORIZATION_DETAILS_PARAM, request.getAuthorizationDetails());
 
         // https://tools.ietf.org/html/rfc7636#section-4
         if (request.getCodeChallenge() != null) authenticationSession.setClientNote(OIDCLoginProtocol.CODE_CHALLENGE_PARAM, request.getCodeChallenge());

@@ -70,6 +70,7 @@ public abstract class AuthzEndpointRequestParser {
         KNOWN_REQ_PARAMS.add(OIDCLoginProtocol.ACR_PARAM);
         KNOWN_REQ_PARAMS.add(OIDCLoginProtocol.GRANT_ID_PARAM);
         KNOWN_REQ_PARAMS.add(OIDCLoginProtocol.GRANT_MANAGEMENT_ACTION);
+        KNOWN_REQ_PARAMS.add(OIDCLoginProtocol.AUTHORIZATION_DETAILS_PARAM);
 
         // https://tools.ietf.org/html/rfc7636#section-6.1
         KNOWN_REQ_PARAMS.add(OIDCLoginProtocol.CODE_CHALLENGE_PARAM);
@@ -101,6 +102,7 @@ public abstract class AuthzEndpointRequestParser {
         request.uiLocales = replaceIfNotNull(request.uiLocales, getParameter(OAuth2Constants.UI_LOCALES_PARAM));
         request.grantId = replaceIfNotNull(request.grantId, getParameter(OIDCLoginProtocol.GRANT_ID_PARAM));
         request.grantManagementAction = replaceIfNotNull(request.grantManagementAction, getParameter(OIDCLoginProtocol.GRANT_MANAGEMENT_ACTION));
+        request.authorizationDetails = replaceIfNotNull(request.authorizationDetails, getParameter(OIDCLoginProtocol.AUTHORIZATION_DETAILS_PARAM));
 
         // https://tools.ietf.org/html/rfc7636#section-6.1
         request.codeChallenge = replaceIfNotNull(request.codeChallenge, getParameter(OIDCLoginProtocol.CODE_CHALLENGE_PARAM));

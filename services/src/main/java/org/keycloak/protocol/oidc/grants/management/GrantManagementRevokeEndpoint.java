@@ -46,7 +46,7 @@ public class GrantManagementRevokeEndpoint extends AbstractGrantManagementEndpoi
     @Path("/{grant_id}")
     @DELETE
     @NoCache
-    public Response queryGrant(@PathParam("grant_id") String grantId, @Context final HttpHeaders headers) {
+    public Response revokeGrant(@PathParam("grant_id") String grantId, @Context final HttpHeaders headers) {
 
         ProfileHelper.requireFeature(Profile.Feature.GRANT_MANAGEMENT);
         event.event(EventType.REVOKE_GRANT);
@@ -56,7 +56,7 @@ public class GrantManagementRevokeEndpoint extends AbstractGrantManagementEndpoi
         authorizeClient();
 
         String accessToken = this.appAuthManager.extractAuthorizationHeaderTokenOrReturnNull(headers);
-        checkToken(accessToken, Constants.GRANT_MANAGEMENT_ACTION_REVOKE, client.getClientId());
+        checkToken(accessToken, Constants.GRANT_MANAGEMENT_ACTION_REVOKE_SCOPE, client.getClientId());
 
         GrantManagementProvider grantManagementProvider = session.getProvider(GrantManagementProvider.class);
         try {

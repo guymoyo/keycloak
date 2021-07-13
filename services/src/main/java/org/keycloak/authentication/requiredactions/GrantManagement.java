@@ -53,7 +53,7 @@ public class GrantManagement implements RequiredActionProvider {
             return;
         }
 
-        String grantManagementAction = context.getAuthenticationSession().getClientNote(OIDCLoginProtocol.GRANT_MANAGEMENT_ACTION);
+        String grantManagementAction = context.getAuthenticationSession().getAuthNote(OIDCLoginProtocol.GRANT_MANAGEMENT_ACTION);
 
         if(Constants.GRANT_MANAGEMENT_ACTION_CREATE.equals(grantManagementAction)
                 || Constants.GRANT_MANAGEMENT_ACTION_UPDATE.equals(grantManagementAction)

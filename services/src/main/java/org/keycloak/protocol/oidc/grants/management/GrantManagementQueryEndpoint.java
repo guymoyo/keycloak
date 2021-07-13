@@ -55,7 +55,7 @@ public class GrantManagementQueryEndpoint extends AbstractGrantManagementEndpoin
         authorizeClient();
 
         String accessToken = this.appAuthManager.extractAuthorizationHeaderTokenOrReturnNull(headers);
-        checkToken(accessToken, Constants.GRANT_MANAGEMENT_ACTION_QUERY, client.getClientId());
+        checkToken(accessToken, Constants.GRANT_MANAGEMENT_ACTION_QUERY_SCOPE, client.getClientId());
 
         GrantManagementProvider grantManagementProvider = session.getProvider(GrantManagementProvider.class);
 

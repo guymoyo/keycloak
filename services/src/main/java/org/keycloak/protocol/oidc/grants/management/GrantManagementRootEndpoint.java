@@ -34,7 +34,7 @@ import javax.ws.rs.core.UriBuilder;
  */
 public class GrantManagementRootEndpoint implements OIDCExtProvider, OIDCExtProviderFactory, EnvironmentDependentProviderFactory {
 
-    public static final String PROVIDER_ID = "grant_management";
+    public static final String PROVIDER_ID = "grants";
 
     private final KeycloakSession session;
     private EventBuilder event;
@@ -46,7 +46,7 @@ public class GrantManagementRootEndpoint implements OIDCExtProvider, OIDCExtProv
 
     public static UriBuilder grantManagementUrl(UriBuilder baseUriBuilder) {
         UriBuilder uriBuilder = OIDCLoginProtocolService.tokenServiceBaseUrl(baseUriBuilder);
-        return uriBuilder.path(OIDCLoginProtocolService.class, "resolveExtension").resolveTemplate("extension", GrantManagementRootEndpoint.PROVIDER_ID, false).path(GrantManagementRootEndpoint.class, "grant");
+        return uriBuilder.path(OIDCLoginProtocolService.class, "resolveExtension").resolveTemplate("extension", GrantManagementRootEndpoint.PROVIDER_ID, false).path(GrantManagementRootEndpoint.class, "queryGrant");
     }
 
     public GrantManagementRootEndpoint(KeycloakSession session) {
@@ -58,7 +58,7 @@ public class GrantManagementRootEndpoint implements OIDCExtProvider, OIDCExtProv
      *
      * @return
      */
-    @Path("/grant")
+    @Path("")
     public GrantManagementQueryEndpoint queryGrant() {
         GrantManagementQueryEndpoint endpoint = new GrantManagementQueryEndpoint(session, event);
 
@@ -72,7 +72,7 @@ public class GrantManagementRootEndpoint implements OIDCExtProvider, OIDCExtProv
      *
      * @return
      */
-    @Path("/grant")
+    @Path("")
     public GrantManagementRevokeEndpoint revokeGrant() {
         GrantManagementRevokeEndpoint endpoint = new GrantManagementRevokeEndpoint(session, event);
 

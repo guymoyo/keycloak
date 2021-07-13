@@ -138,4 +138,6 @@ public final class Constants {
     public static final String GRANT_MANAGEMENT_ACTION_CREATE = "create";
     public static final List<String> GRANT_MANAGEMENT_ACTIONS = Arrays.asList(GRANT_MANAGEMENT_ACTION_QUERY, GRANT_MANAGEMENT_ACTION_REVOKE, GRANT_MANAGEMENT_ACTION_UPDATE, GRANT_MANAGEMENT_ACTION_REPLACE, GRANT_MANAGEMENT_ACTION_CREATE);
 
+    public static final String GRANT_MANAGEMENT_ACTION_QUERY_SCOPE = "grant_management_query";
+    public static final String GRANT_MANAGEMENT_ACTION_REVOKE_SCOPE = "grant_management_revoke";
 }
