@@ -54,10 +54,10 @@ public abstract class AbstractGrantManagementEndpoint {
     protected ClientModel client;
 
     @Context
-    private HttpRequest request;
+    protected HttpRequest request;
 
     @Context
-    private HttpResponse response;
+    protected HttpResponse response;
 
     public AbstractGrantManagementEndpoint(KeycloakSession session, EventBuilder event) {
         this.session = session;

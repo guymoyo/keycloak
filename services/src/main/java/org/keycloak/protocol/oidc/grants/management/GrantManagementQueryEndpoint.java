@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Red Hat, Inc. and/or its affiliates
+ * Copyright 2021 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +24,7 @@ import org.keycloak.events.EventType;
 import org.keycloak.models.*;
 import org.keycloak.services.CorsErrorResponseException;
 import org.keycloak.services.managers.AppAuthManager;
+import org.keycloak.services.resources.Cors;
 import org.keycloak.utils.ProfileHelper;
 
 import javax.ws.rs.*;
@@ -41,7 +42,7 @@ public class GrantManagementQueryEndpoint extends AbstractGrantManagementEndpoin
         this.appAuthManager = new AppAuthManager();
     }
 
-    @Path("{grant_id}")
+    @Path("/{grant_id}")
     @GET
     @NoCache
     @Produces(MediaType.APPLICATION_JSON)
@@ -49,6 +50,7 @@ public class GrantManagementQueryEndpoint extends AbstractGrantManagementEndpoin
 
         ProfileHelper.requireFeature(Profile.Feature.GRANT_MANAGEMENT);
         event.event(EventType.QUERY_GRANT);
+        cors = Cors.add(request).auth().allowedMethods("GET").auth().exposedHeaders(Cors.ACCESS_CONTROL_ALLOW_METHODS);
 
         checkSsl();
         checkRealm();

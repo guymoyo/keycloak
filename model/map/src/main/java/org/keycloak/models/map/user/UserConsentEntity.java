@@ -70,7 +70,6 @@ public class UserConsentEntity implements UpdatableEntity {
         UserConsentModel model = new UserConsentModel(client);
         model.setCreatedDate(entity.getCreatedDate());
         model.setLastUpdatedDate(entity.getLastUpdatedDate());
-        model.setId(entity.getId());
 
         entity.getGrantedClientScopesIds().stream()
                 .map(scopeId -> KeycloakModelUtils.findClientScopeById(realm, client, scopeId))

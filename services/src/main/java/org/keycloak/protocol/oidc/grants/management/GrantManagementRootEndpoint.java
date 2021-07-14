@@ -26,6 +26,8 @@ import org.keycloak.protocol.oidc.ext.OIDCExtProvider;
 import org.keycloak.protocol.oidc.ext.OIDCExtProviderFactory;
 import org.keycloak.provider.EnvironmentDependentProviderFactory;
 
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.UriBuilder;
 
@@ -46,7 +48,7 @@ public class GrantManagementRootEndpoint implements OIDCExtProvider, OIDCExtProv
 
     public static UriBuilder grantManagementUrl(UriBuilder baseUriBuilder) {
         UriBuilder uriBuilder = OIDCLoginProtocolService.tokenServiceBaseUrl(baseUriBuilder);
-        return uriBuilder.path(OIDCLoginProtocolService.class, "resolveExtension").resolveTemplate("extension", GrantManagementRootEndpoint.PROVIDER_ID, false).path(GrantManagementRootEndpoint.class, "queryGrant");
+        return uriBuilder.path(OIDCLoginProtocolService.class, "resolveExtension").resolveTemplate("extension", GrantManagementRootEndpoint.PROVIDER_ID, false).path("/");
     }
 
     public GrantManagementRootEndpoint(KeycloakSession session) {
@@ -58,7 +60,7 @@ public class GrantManagementRootEndpoint implements OIDCExtProvider, OIDCExtProv
      *
      * @return
      */
-    @Path("/")
+    @Path("query")
     public GrantManagementQueryEndpoint queryGrant() {
         GrantManagementQueryEndpoint endpoint = new GrantManagementQueryEndpoint(session, event);
 
@@ -72,7 +74,7 @@ public class GrantManagementRootEndpoint implements OIDCExtProvider, OIDCExtProv
      *
      * @return
      */
-    @Path("/")
+    @Path("revoke")
     public GrantManagementRevokeEndpoint revokeGrant() {
         GrantManagementRevokeEndpoint endpoint = new GrantManagementRevokeEndpoint(session, event);
 

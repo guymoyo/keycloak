@@ -33,9 +33,10 @@ import org.keycloak.protocol.oidc.OIDCLoginProtocol;
 import org.keycloak.services.managers.AuthenticationManager;
 import org.keycloak.sessions.AuthenticationSessionModel;
 
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import java.util.HashSet;
+import java.util.Set;
 
 
 public class GrantManagement implements RequiredActionProvider {
@@ -52,9 +53,7 @@ public class GrantManagement implements RequiredActionProvider {
 
         String grantManagementAction = context.getAuthenticationSession().getAuthNote(OIDCLoginProtocol.GRANT_MANAGEMENT_ACTION);
 
-        if(Constants.GRANT_MANAGEMENT_ACTION_CREATE.equals(grantManagementAction)
-                || Constants.GRANT_MANAGEMENT_ACTION_UPDATE.equals(grantManagementAction)
-                || Constants.GRANT_MANAGEMENT_ACTION_REPLACE.equals(grantManagementAction)) {
+        if(Constants.GRANT_MANAGEMENT_ACTIONS_SUPPORTED_BY_AUTHZ_REQUEST.contains(grantManagementAction)) {
 
             context.getUser().addRequiredAction(UserModel.RequiredAction.GRANT_MANAGEMENT);
             logger.debug("User is required to accept or reject the grant");
@@ -95,30 +94,18 @@ public class GrantManagement implements RequiredActionProvider {
         GrantManagementProvider grantManagementProvider = context.getSession().getProvider(GrantManagementProvider.class);
         long currentTime = Time.currentTimeMillis();
 
-        UserConsentModel grantedConsent = context.getSession().users().getConsentByClient(realm, user.getId(), client.getId());
-        if (grantedConsent == null) {
-            grantedConsent = new UserConsentModel(client);
-            context.getSession().users().addConsent(realm, user.getId(), grantedConsent);
-        }
-
-        boolean updateConsentRequired = false;
-        for (String clientScopeId : authSession.getClientScopes()) {
-            ClientScopeModel clientScope = KeycloakModelUtils.findClientScopeById(realm, client, clientScopeId);
-            if (clientScope != null) {
-                if (!grantedConsent.isClientScopeGranted(clientScope) && clientScope.isDisplayOnConsentScreen()) {
-                    grantedConsent.addGrantedClientScope(clientScope);
-                    updateConsentRequired = true;
-                }
-            } else {
-                logger.warnf("Client scope or client with ID '%s' not found", clientScopeId);
-            }
-        }
-        if (updateConsentRequired) {
-            context.getSession().users().updateConsent(realm, user.getId(), grantedConsent);
-        }
 
         String grantManagementAction = context.getAuthenticationSession().getAuthNote(OIDCLoginProtocol.GRANT_MANAGEMENT_ACTION);
         UserGrantModel userGrantModel = null;
+
+        //grant management action not supported
+        if (!Constants.GRANT_MANAGEMENT_ACTIONS_SUPPORTED_BY_AUTHZ_REQUEST.contains(grantManagementAction)) {
+
+            cleanSession(context, RequiredActionContext.KcActionStatus.ERROR);
+            context.failure();
+            event.error(Errors.INVALID_REQUEST);
+            return;
+        }
 
         //grantId required when it is an update or replace
         if (Constants.GRANT_MANAGEMENT_ACTION_UPDATE.equals(grantManagementAction)
@@ -147,22 +134,51 @@ public class GrantManagement implements RequiredActionProvider {
             }
         }
 
-        if (Constants.GRANT_MANAGEMENT_ACTION_CREATE.equals(grantManagementAction)) {
+        //it should have a consent between user and client
+        UserConsentModel grantedConsent = context.getSession().users().getConsentByClient(realm, user.getId(), client.getId());
+        if (grantedConsent == null) {
+            grantedConsent = new UserConsentModel(client);
+            context.getSession().users().addConsent(realm, user.getId(), grantedConsent);
+        }
 
-            userGrantModel = new UserGrantModel();
-            grantId = Base64Url.encode(KeycloakModelUtils.generateSecret());
-            userGrantModel.setGrantId(grantId);
-            userGrantModel.setConsentId(grantedConsent.getId());
-            userGrantModel.setClientId(client.getClientId());
-            userGrantModel.setUserId(user.getId());
-            userGrantModel.setScopes(authSession.getAuthNote(OIDCLoginProtocol.SCOPE_PARAM));
-            userGrantModel.setClaims(authSession.getAuthNote(OIDCLoginProtocol.CLAIMS_PARAM));
-            //TODO: when merging with RAR, userGrantModel.setAuthorizationDetails(rarProcessor.finaliseAuthorizationDetails(grantManagementAction, formData, authSession.getAuthNote(OIDCLoginProtocol.AUTHORIZATION_DETAILS_PARAM)));
-            userGrantModel.setAuthorizationDetails(authSession.getAuthNote(OIDCLoginProtocol.AUTHORIZATION_DETAILS_PARAM));
-            userGrantModel.setCreatedDate(currentTime);
-            userGrantModel.setLastUpdatedDate(currentTime);
+        Set<String> grantScopes = new HashSet<String>();
+        boolean updateConsentRequired = false;
+        for (String clientScopeId : authSession.getClientScopes()) {
+            ClientScopeModel clientScope = KeycloakModelUtils.findClientScopeById(realm, client, clientScopeId);
+            if (clientScope != null) {
+                if (!grantedConsent.isClientScopeGranted(clientScope) && clientScope.isDisplayOnConsentScreen()) {
+                    grantedConsent.addGrantedClientScope(clientScope);
+                    updateConsentRequired = true;
+                }
+
+                if (grantedConsent.isClientScopeGranted(clientScope)) {
+                    grantScopes.add(clientScope.getName());
+                }
+            } else {
+                logger.warnf("Client scope or client with ID '%s' not found", clientScopeId);
+            }
+        }
+
+        if (updateConsentRequired) {
+            context.getSession().users().updateConsent(realm, user.getId(), grantedConsent);
+        }
+
+        if (Constants.GRANT_MANAGEMENT_ACTION_CREATE.equals(grantManagementAction)) {
             try {
+
+                userGrantModel = new UserGrantModel();
+                grantId = Base64Url.encode(KeycloakModelUtils.generateSecret());
+                userGrantModel.setGrantId(grantId);
+                userGrantModel.setClientId(client.getClientId());
+                userGrantModel.setUserId(user.getId());
+                userGrantModel.setScopes(grantScopes);
+                userGrantModel.setClaims(authSession.getAuthNote(OIDCLoginProtocol.CLAIMS_PARAM));
+                //TODO: when merging with RAR, userGrantModel.setAuthorizationDetails(rarProcessor.finaliseAuthorizationDetails(grantManagementAction, formData, authSession.getAuthNote(OIDCLoginProtocol.AUTHORIZATION_DETAILS_PARAM)));
+                userGrantModel.setAuthorizationDetails(authSession.getAuthNote(OIDCLoginProtocol.AUTHORIZATION_DETAILS_PARAM));
+                userGrantModel.setCreatedDate(currentTime);
+                userGrantModel.setLastUpdatedDate(currentTime);
                 grantManagementProvider.adduserGrant(realm, userGrantModel);
+
             } catch (Exception e) {
                 cleanSession(context, RequiredActionContext.KcActionStatus.ERROR);
                 context.failure();
@@ -171,23 +187,46 @@ public class GrantManagement implements RequiredActionProvider {
             }
         }
 
-        if (Constants.GRANT_MANAGEMENT_ACTION_UPDATE.equals(grantManagementAction)
-                || Constants.GRANT_MANAGEMENT_ACTION_REPLACE.equals(grantManagementAction)) {
+        if (Constants.GRANT_MANAGEMENT_ACTION_REPLACE.equals(grantManagementAction)) {
 
-            userGrantModel.setScopes(authSession.getAuthNote(OIDCLoginProtocol.SCOPE_PARAM));
-            userGrantModel.setClaims(authSession.getAuthNote(OIDCLoginProtocol.CLAIMS_PARAM));
-            //TODO: when merging with RAR, userGrantModel.setAuthorizationDetails(rarProcessor.finaliseAuthorizationDetails(grantManagementAction, formData, authSession.getAuthNote(OIDCLoginProtocol.AUTHORIZATION_DETAILS_PARAM)));
-            userGrantModel.setAuthorizationDetails(authSession.getAuthNote(OIDCLoginProtocol.AUTHORIZATION_DETAILS_PARAM));
-            userGrantModel.setLastUpdatedDate(currentTime);
             try {
+                userGrantModel.setScopes(grantScopes);
+                userGrantModel.setClaims(authSession.getAuthNote(OIDCLoginProtocol.CLAIMS_PARAM));
+                //TODO: when merging with RAR, userGrantModel.setAuthorizationDetails(rarProcessor.finaliseAuthorizationDetails(grantManagementAction, formData, authSession.getAuthNote(OIDCLoginProtocol.AUTHORIZATION_DETAILS_PARAM)));
+                userGrantModel.setAuthorizationDetails(authSession.getAuthNote(OIDCLoginProtocol.AUTHORIZATION_DETAILS_PARAM));
+                userGrantModel.setLastUpdatedDate(currentTime);
                 grantManagementProvider.updateUserGrant(realm, userGrantModel);
+
             } catch (Exception e) {
                 cleanSession(context, RequiredActionContext.KcActionStatus.ERROR);
                 context.failure();
                 event.error(Errors.INVALID_REQUEST);
                 return;
             }
+        }
 
+        if (Constants.GRANT_MANAGEMENT_ACTION_UPDATE.equals(grantManagementAction)) {
+
+            try {
+
+                if (userGrantModel.getScopes() == null || userGrantModel.getScopes().isEmpty()) {
+                    userGrantModel.setScopes(grantScopes);
+                }else {
+                    userGrantModel.getScopes().addAll(grantScopes);
+                }
+
+                userGrantModel.setClaims(authSession.getAuthNote(OIDCLoginProtocol.CLAIMS_PARAM));
+                //TODO: when merging with RAR, userGrantModel.setAuthorizationDetails(rarProcessor.finaliseAuthorizationDetails(grantManagementAction, formData, authSession.getAuthNote(OIDCLoginProtocol.AUTHORIZATION_DETAILS_PARAM)));
+                userGrantModel.setAuthorizationDetails(authSession.getAuthNote(OIDCLoginProtocol.AUTHORIZATION_DETAILS_PARAM));
+                userGrantModel.setLastUpdatedDate(currentTime);
+                grantManagementProvider.updateUserGrant(realm, userGrantModel);
+
+            } catch (Exception e) {
+                cleanSession(context, RequiredActionContext.KcActionStatus.ERROR);
+                context.failure();
+                event.error(Errors.INVALID_REQUEST);
+                return;
+            }
         }
 
         cleanSession(context, RequiredActionContext.KcActionStatus.SUCCESS);

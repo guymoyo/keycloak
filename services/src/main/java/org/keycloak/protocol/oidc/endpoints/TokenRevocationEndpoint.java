@@ -231,10 +231,6 @@ public class TokenRevocationEndpoint {
 
     private void revokeClient() {
         session.users().revokeConsentForClient(realm, user.getId(), client.getId());
-
-        GrantManagementProvider grantManagementProvider = session.getProvider(GrantManagementProvider.class);
-        grantManagementProvider.revokeGrantByClientIdAndUserId(realm, user.getId(), client.getClientId());
-
         if (TokenUtil.TOKEN_TYPE_OFFLINE.equals(token.getType())) {
             new UserSessionManager(session).revokeOfflineToken(user, client);
         }

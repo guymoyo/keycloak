@@ -29,7 +29,6 @@ public class UserConsentModel {
     private Set<ClientScopeModel> clientScopes = new HashSet<>();
     private Long createdDate;
     private Long lastUpdatedDate;
-    private String id;
 
     public UserConsentModel(ClientModel client) {
         this.client = client;
@@ -54,15 +53,6 @@ public class UserConsentModel {
         }
         return false;
     }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
     public Long getCreatedDate() {
         return createdDate;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Red Hat, Inc. and/or its affiliates
+ * Copyright 2021 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +25,7 @@ import org.keycloak.models.*;
 import org.keycloak.protocol.oidc.TokenManager;
 import org.keycloak.services.CorsErrorResponseException;
 import org.keycloak.services.managers.AppAuthManager;
+import org.keycloak.services.resources.Cors;
 import org.keycloak.utils.ProfileHelper;
 
 import javax.ws.rs.*;
@@ -43,13 +44,14 @@ public class GrantManagementRevokeEndpoint extends AbstractGrantManagementEndpoi
         this.appAuthManager = new AppAuthManager();
     }
 
-    @Path("{grant_id}")
+    @Path("/{grant_id}")
     @DELETE
     @NoCache
     public Response revokeGrant(@PathParam("grant_id") String grantId, @Context final HttpHeaders headers) {
 
         ProfileHelper.requireFeature(Profile.Feature.GRANT_MANAGEMENT);
         event.event(EventType.REVOKE_GRANT);
+        cors = Cors.add(request).auth().allowedMethods("DELETE").auth().exposedHeaders(Cors.ACCESS_CONTROL_ALLOW_METHODS);
 
         checkSsl();
         checkRealm();

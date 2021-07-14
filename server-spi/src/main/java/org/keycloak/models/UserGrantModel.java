@@ -17,9 +17,11 @@
 
 package org.keycloak.models;
 
+import java.util.Set;
+
 public class UserGrantModel {
 
-    private String scopes;
+    private Set<String> scopes;
     private String claims;
     private String authorizationDetails;
     private String grantId;
@@ -27,7 +29,6 @@ public class UserGrantModel {
     private String userId;
     private Long createdDate;
     private Long lastUpdatedDate;
-    private String consentId;
 
     public String getClientId() {
         return clientId;
@@ -45,11 +46,11 @@ public class UserGrantModel {
         this.userId = userId;
     }
 
-    public String getScopes() {
+    public Set<String> getScopes() {
         return scopes;
     }
 
-    public void setScopes(String scopes) {
+    public void setScopes(Set<String> scopes) {
         this.scopes = scopes;
     }
 
@@ -93,15 +94,7 @@ public class UserGrantModel {
         this.lastUpdatedDate = lastUpdatedDate;
     }
 
-    public String getConsentId() {
-        return consentId;
-    }
-
-    public void setConsentId(String consentId) {
-        this.consentId = consentId;
-    }
-
-    public UserGrantModel(String scopes, String claims, String authorizationDetails, String grantId, Long createdDate, Long lastUpdatedDate) {
+    public UserGrantModel(Set<String> scopes, String claims, String authorizationDetails, String grantId, Long createdDate, Long lastUpdatedDate) {
         this.scopes = scopes;
         this.claims = claims;
         this.authorizationDetails = authorizationDetails;
