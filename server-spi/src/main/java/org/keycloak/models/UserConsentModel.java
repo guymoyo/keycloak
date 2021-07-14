@@ -53,6 +53,7 @@ public class UserConsentModel {
         }
         return false;
     }
+
     public Long getCreatedDate() {
         return createdDate;
     }

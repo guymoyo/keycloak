@@ -38,7 +38,6 @@ public class UserConsentEntity implements UpdatableEntity {
     private Long createdDate;
     private Long lastUpdatedDate;
     private boolean updated;
-    private String id;
     
     private UserConsentEntity() {}
 
@@ -91,14 +90,6 @@ public class UserConsentEntity implements UpdatableEntity {
     public void setClientId(String clientId) {
         this.updated = !Objects.equals(this.clientId, clientId);
         this.clientId = clientId;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
     }
 
     public Set<String> getGrantedClientScopesIds() {

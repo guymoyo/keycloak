@@ -1236,6 +1236,7 @@ public class RepresentationToModel {
         if (rep.getDockerAuthenticationFlow() != null) {
             realm.setDockerAuthenticationFlow(realm.getFlowByAlias(rep.getDockerAuthenticationFlow()));
         }
+
     }
 
     private static void updateCibaSettings(RealmRepresentation rep, RealmModel realm) {
