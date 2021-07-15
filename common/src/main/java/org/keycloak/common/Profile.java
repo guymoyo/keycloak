@@ -63,7 +63,7 @@ public class Profile {
         CIBA(Type.PREVIEW),
         MAP_STORAGE(Type.EXPERIMENTAL),
         PAR(Type.PREVIEW),
-        GRANT_MANAGEMENT(Type.DEFAULT);
+        GRANT_MANAGEMENT(Type.PREVIEW);
 
         private final Type typeProject;
         private final Type typeProduct;
