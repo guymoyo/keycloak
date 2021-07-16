@@ -58,6 +58,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Collections;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -208,8 +209,11 @@ public class OIDCWellKnownProvider implements WellKnownProvider {
     }
 
     private List<String> getAuthorizationDetailsTypesSupported() {
-        return session.getProvider(RichAuthzRequestProvider.class)
-                .getAuthorizationDetailsTypesSupported();
+        RichAuthzRequestProvider richAuthzRequestProvider = session.getProvider(RichAuthzRequestProvider.class);
+        if (richAuthzRequestProvider != null) {
+            return richAuthzRequestProvider.getAuthorizationDetailsTypesSupported();
+        }
+        return Collections.emptyList();
     }
 
     private List<String> getSupportedAlgorithms(Class<? extends Provider> clazz, boolean includeNone) {

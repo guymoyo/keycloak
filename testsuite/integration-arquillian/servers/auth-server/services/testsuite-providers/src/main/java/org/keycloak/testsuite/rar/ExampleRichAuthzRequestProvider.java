@@ -64,18 +64,8 @@ public class ExampleRichAuthzRequestProvider implements RichAuthzRequestProvider
     }
 
     @Override
-    public String mergeAuthorizationDetails(String newAuthorizationDetailsJson, String oldAuthorizationDetailsJson) {
-        return oldAuthorizationDetailsJson;
-    }
-
-    @Override
     public Object enrichAuthorizationDetails(String authorizationDetailsJson) {
         return authorizationDetailsJson;
-    }
-
-    @Override
-    public String getTemplateName() {
-        return null;
     }
 
     @Override

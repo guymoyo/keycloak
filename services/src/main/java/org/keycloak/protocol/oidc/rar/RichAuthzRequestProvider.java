@@ -41,15 +41,6 @@ public interface RichAuthzRequestProvider extends Provider {
    List<String> getAuthorizationDetailsTypesSupported();
 
     /**
-     * Merge the new AuthorizationDetailsJson with the old AuthorizationDetailsJson
-     *
-     * @param newAuthorizationDetailsJson
-     * @param oldAuthorizationDetailsJson
-     * @return an authorizationDetailsJson merged
-     */
-   String mergeAuthorizationDetails(String newAuthorizationDetailsJson, String oldAuthorizationDetailsJson);
-
-    /**
      * This method will enriches the data in an authorization details object
      * It can be the case where Client sent an authorization details with some empty field that would be fill by this method
      *
@@ -57,12 +48,6 @@ public interface RichAuthzRequestProvider extends Provider {
      * @return an authorizationDetailsJson populated with some data if needed
      */
    Object enrichAuthorizationDetails(String authorizationDetailsJson);
-
-    /**
-     *
-     * @return the partial template name, where the grant/authorizationDetails will be show
-     */
-   String getTemplateName();
 
     /**
      *
