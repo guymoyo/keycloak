@@ -61,6 +61,7 @@ import org.apache.http.util.EntityUtils;
 public class DefaultHttpClientFactory implements HttpClientFactory {
 
     private static final Logger logger = Logger.getLogger(DefaultHttpClientFactory.class);
+    private static final String configScope = "keycloak.connectionsHttpClient.default.";
 
     private volatile CloseableHttpClient httpClient;
     private Config.Scope config;
@@ -138,6 +139,7 @@ public class DefaultHttpClientFactory implements HttpClientFactory {
                     int maxPooledPerRoute = config.getInt("max-pooled-per-route", 64);
                     int connectionPoolSize = config.getInt("connection-pool-size", 128);
                     long connectionTTL = config.getLong("connection-ttl-millis", -1L);
+                    boolean reuseConnections = config.getBoolean("reuse-connections", true);
                     long maxConnectionIdleTime = config.getLong("max-connection-idle-time-millis", 900000L);
                     boolean disableCookies = config.getBoolean("disable-cookies", true);
                     String clientKeystore = config.get("client-keystore");
@@ -145,17 +147,23 @@ public class DefaultHttpClientFactory implements HttpClientFactory {
                     String clientPrivateKeyPassword = config.get("client-key-password");
                     String[] proxyMappings = config.getArray("proxy-mappings");
                     boolean disableTrustManager = config.getBoolean("disable-trust-manager", false);
-                    
+
+                    boolean expectContinueEnabled = getBooleanConfigWithSysPropFallback("expect-continue-enabled", false);
+                    boolean resuseConnections = getBooleanConfigWithSysPropFallback("reuse-connections", true);
+
                     HttpClientBuilder builder = new HttpClientBuilder();
 
                     builder.socketTimeout(socketTimeout, TimeUnit.MILLISECONDS)
                             .establishConnectionTimeout(establishConnectionTimeout, TimeUnit.MILLISECONDS)
                             .maxPooledPerRoute(maxPooledPerRoute)
                             .connectionPoolSize(connectionPoolSize)
+                            .reuseConnections(reuseConnections)
                             .connectionTTL(connectionTTL, TimeUnit.MILLISECONDS)
                             .maxConnectionIdleTime(maxConnectionIdleTime, TimeUnit.MILLISECONDS)
                             .disableCookies(disableCookies)
-                            .proxyMappings(ProxyMappings.valueOf(proxyMappings));
+                            .proxyMappings(ProxyMappings.valueOf(proxyMappings))
+                            .expectContinueEnabled(expectContinueEnabled)
+                            .reuseConnections(resuseConnections);
 
                     TruststoreProvider truststoreProvider = session.getProvider(TruststoreProvider.class);
                     boolean disableTruststoreProvider = truststoreProvider == null || truststoreProvider.getTruststore() == null;
@@ -196,6 +204,15 @@ public class DefaultHttpClientFactory implements HttpClientFactory {
 
     }
 
-
+    private boolean getBooleanConfigWithSysPropFallback(String key, boolean defaultValue) {
+        Boolean value = config.getBoolean(key);
+        if (value == null) {
+            String s = System.getProperty(configScope + key);
+            if (s != null) {
+                value = Boolean.parseBoolean(s);
+            }
+        }
+        return value != null ? value : defaultValue;
+    }
 
 }

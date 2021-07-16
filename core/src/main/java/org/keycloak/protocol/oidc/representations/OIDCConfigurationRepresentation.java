@@ -97,6 +97,15 @@ public class OIDCConfigurationRepresentation {
     @JsonProperty("introspection_endpoint_auth_signing_alg_values_supported")
     private List<String> introspectionEndpointAuthSigningAlgValuesSupported;
 
+    @JsonProperty("authorization_signing_alg_values_supported")
+    private List<String> authorizationSigningAlgValuesSupported;
+
+    @JsonProperty("authorization_encryption_alg_values_supported")
+    private List<String> authorizationEncryptionAlgValuesSupported;
+
+    @JsonProperty("authorization_encryption_enc_values_supported")
+    private List<String> authorizationEncryptionEncValuesSupported;
+
     @JsonProperty("claims_supported")
     private List<String> claimsSupported;
 
@@ -141,6 +150,24 @@ public class OIDCConfigurationRepresentation {
 
     @JsonProperty("backchannel_logout_session_supported")
     private Boolean backchannelLogoutSessionSupported;
+
+    @JsonProperty("device_authorization_endpoint")
+    private String deviceAuthorizationEndpoint;
+
+    @JsonProperty("backchannel_token_delivery_modes_supported")
+    private List<String> backchannelTokenDeliveryModesSupported;
+
+    @JsonProperty("backchannel_authentication_endpoint")
+    private String backchannelAuthenticationEndpoint;
+
+    @JsonProperty("backchannel_authentication_request_signing_alg_values_supported")
+    private List<String> backchannelAuthenticationRequestSigningAlgValuesSupported;
+
+    @JsonProperty("require_pushed_authorization_requests")
+    private Boolean requirePushedAuthorizationRequests;
+
+    @JsonProperty("pushed_authorization_request_endpoint")
+    private String pushedAuthorizationRequestEndpoint;
 
     @JsonProperty("authorization_details_types_supported")
     private List<String> authorizationDetailsTypesSupported;
@@ -439,6 +466,46 @@ public class OIDCConfigurationRepresentation {
         this.backchannelLogoutSupported = backchannelLogoutSupported;
     }
 
+    public List<String> getBackchannelTokenDeliveryModesSupported() {
+        return backchannelTokenDeliveryModesSupported;
+    }
+
+    public void setBackchannelTokenDeliveryModesSupported(List<String> backchannelTokenDeliveryModesSupported) {
+        this.backchannelTokenDeliveryModesSupported = backchannelTokenDeliveryModesSupported;
+    }
+
+    public String getBackchannelAuthenticationEndpoint() {
+        return backchannelAuthenticationEndpoint;
+    }
+
+    public void setBackchannelAuthenticationEndpoint(String backchannelAuthenticationEndpoint) {
+        this.backchannelAuthenticationEndpoint = backchannelAuthenticationEndpoint;
+    }
+
+    public List<String> getBackchannelAuthenticationRequestSigningAlgValuesSupported() {
+        return backchannelAuthenticationRequestSigningAlgValuesSupported;
+    }
+
+    public void setBackchannelAuthenticationRequestSigningAlgValuesSupported(List<String> backchannelAuthenticationRequestSigningAlgValuesSupported) {
+        this.backchannelAuthenticationRequestSigningAlgValuesSupported = backchannelAuthenticationRequestSigningAlgValuesSupported;
+    }
+
+    public String getPushedAuthorizationRequestEndpoint() {
+        return pushedAuthorizationRequestEndpoint;
+    }
+
+    public void setPushedAuthorizationRequestEndpoint(String pushedAuthorizationRequestEndpoint) {
+        this.pushedAuthorizationRequestEndpoint = pushedAuthorizationRequestEndpoint;
+    }
+
+    public Boolean getRequirePushedAuthorizationRequests() {
+        return requirePushedAuthorizationRequests;
+    }
+
+    public void setRequirePushedAuthorizationRequests(Boolean requirePushedAuthorizationRequests) {
+        this.requirePushedAuthorizationRequests = requirePushedAuthorizationRequests;
+    }
+
     public List<String> getAuthorizationDetailsTypesSupported() {
         return authorizationDetailsTypesSupported;
     }
@@ -455,5 +522,37 @@ public class OIDCConfigurationRepresentation {
     @JsonAnySetter
     public void setOtherClaims(String name, Object value) {
         otherClaims.put(name, value);
+    }
+
+    public void setDeviceAuthorizationEndpoint(String deviceAuthorizationEndpoint) {
+        this.deviceAuthorizationEndpoint = deviceAuthorizationEndpoint;
+    }
+
+    public String getDeviceAuthorizationEndpoint() {
+        return deviceAuthorizationEndpoint;
+    }
+
+    public List<String> getAuthorizationSigningAlgValuesSupported() {
+        return authorizationSigningAlgValuesSupported;
+    }
+
+    public void setAuthorizationSigningAlgValuesSupported(List<String> authorizationSigningAlgValuesSupported) {
+        this.authorizationSigningAlgValuesSupported = authorizationSigningAlgValuesSupported;
+    }
+
+    public List<String> getAuthorizationEncryptionAlgValuesSupported() {
+        return authorizationEncryptionAlgValuesSupported;
+    }
+
+    public void setAuthorizationEncryptionAlgValuesSupported(List<String> authorizationEncryptionAlgValuesSupported) {
+        this.authorizationEncryptionAlgValuesSupported = authorizationEncryptionAlgValuesSupported;
+    }
+
+    public List<String> getAuthorizationEncryptionEncValuesSupported() {
+        return authorizationEncryptionEncValuesSupported;
+    }
+
+    public void setAuthorizationEncryptionEncValuesSupported(List<String> authorizationEncryptionEncValuesSupported) {
+        this.authorizationEncryptionEncValuesSupported = authorizationEncryptionEncValuesSupported;
     }
 }

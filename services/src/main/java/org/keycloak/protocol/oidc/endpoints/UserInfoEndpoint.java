@@ -69,9 +69,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author pedroigor
@@ -229,28 +227,7 @@ public class UserInfoEndpoint {
         AccessToken userInfo = new AccessToken();
         
         tokenManager.transformUserInfoAccessToken(session, userInfo, userSession, clientSessionCtx);
-
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("sub", userModel.getId());
-        claims.putAll(userInfo.getOtherClaims());
-
-        if (userInfo.getRealmAccess() != null) {
-            Map<String, Set<String>> realmAccess = new HashMap<>();
-            realmAccess.put("roles", userInfo.getRealmAccess().getRoles());
-            claims.put("realm_access", realmAccess);
-        }
-
-        if (userInfo.getResourceAccess() != null && !userInfo.getResourceAccess().isEmpty()) {
-            Map<String, Map<String, Set<String>>> resourceAccessMap = new HashMap<>();
-
-            for (Map.Entry<String, AccessToken.Access> resourceAccessMapEntry : userInfo.getResourceAccess()
-                    .entrySet()) {
-                Map<String, Set<String>> resourceAccess = new HashMap<>();
-                resourceAccess.put("roles", resourceAccessMapEntry.getValue().getRoles());
-                resourceAccessMap.put(resourceAccessMapEntry.getKey(), resourceAccess);
-            }
-            claims.put("resource_access", resourceAccessMap);
-        }
+        Map<String, Object> claims = tokenManager.generateUserInfoClaims(userInfo, userModel);
 
         Response.ResponseBuilder responseBuilder;
         OIDCAdvancedConfigWrapper cfg = OIDCAdvancedConfigWrapper.fromClientModel(clientModel);
@@ -310,13 +287,13 @@ public class UserInfoEndpoint {
         UserSessionModel userSession = new UserSessionCrossDCManager(session).getUserSessionWithClient(realm, token.getSessionState(), false, client.getId());
         UserSessionModel offlineUserSession = null;
         if (AuthenticationManager.isSessionValid(realm, userSession)) {
-            checkTokenIssuedAt(token, userSession, event);
+            checkTokenIssuedAt(token, userSession, event, client);
             event.session(userSession);
             return userSession;
         } else {
             offlineUserSession = new UserSessionCrossDCManager(session).getUserSessionWithClient(realm, token.getSessionState(), true, client.getId());
             if (AuthenticationManager.isOfflineSessionValid(realm, offlineUserSession)) {
-                checkTokenIssuedAt(token, offlineUserSession, event);
+                checkTokenIssuedAt(token, offlineUserSession, event, client);
                 event.session(offlineUserSession);
                 return offlineUserSession;
             }
@@ -337,8 +314,14 @@ public class UserInfoEndpoint {
         throw newUnauthorizedErrorResponseException(OAuthErrorException.INVALID_TOKEN, "Session expired");
     }
 
-    private void checkTokenIssuedAt(AccessToken token, UserSessionModel userSession, EventBuilder event) throws CorsErrorResponseException {
-        if (token.getIssuedAt() + 1 < userSession.getStarted()) {
+    private void checkTokenIssuedAt(AccessToken token, UserSessionModel userSession, EventBuilder event, ClientModel client) throws CorsErrorResponseException {
+        if (token.isIssuedBeforeSessionStart(userSession.getStarted())) {
+            event.error(Errors.INVALID_TOKEN);
+            throw newUnauthorizedErrorResponseException(OAuthErrorException.INVALID_TOKEN, "Stale token");
+        }
+
+        AuthenticatedClientSessionModel clientSession = userSession.getAuthenticatedClientSessionByClient(client.getId());
+        if (token.isIssuedBeforeSessionStart(clientSession.getStarted())) {
             event.error(Errors.INVALID_TOKEN);
             throw newUnauthorizedErrorResponseException(OAuthErrorException.INVALID_TOKEN, "Stale token");
         }

@@ -26,10 +26,15 @@ import org.keycloak.crypto.ClientSignatureVerifierProvider;
 import org.keycloak.crypto.ContentEncryptionProvider;
 import org.keycloak.crypto.SignatureProvider;
 import org.keycloak.jose.jws.Algorithm;
+import org.keycloak.models.CibaConfig;
 import org.keycloak.models.ClientScopeModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
+import org.keycloak.protocol.oidc.endpoints.AuthorizationEndpoint;
 import org.keycloak.protocol.oidc.endpoints.TokenEndpoint;
+import org.keycloak.protocol.oidc.grants.ciba.CibaGrantType;
+import org.keycloak.protocol.oidc.grants.device.endpoints.DeviceEndpoint;
+import org.keycloak.protocol.oidc.par.endpoints.ParEndpoint;
 import org.keycloak.protocol.oidc.rar.RichAuthzRequestProcessorProvider;
 import org.keycloak.protocol.oidc.representations.OIDCConfigurationRepresentation;
 import org.keycloak.protocol.oidc.utils.OIDCResponseType;
@@ -47,10 +52,13 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 import java.net.URI;
+import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -59,13 +67,16 @@ import java.util.stream.Stream;
  */
 public class OIDCWellKnownProvider implements WellKnownProvider {
 
-    public static final List<String> DEFAULT_GRANT_TYPES_SUPPORTED = list(OAuth2Constants.AUTHORIZATION_CODE, OAuth2Constants.IMPLICIT, OAuth2Constants.REFRESH_TOKEN, OAuth2Constants.PASSWORD, OAuth2Constants.CLIENT_CREDENTIALS);
+    public static final List<String> DEFAULT_GRANT_TYPES_SUPPORTED = list(OAuth2Constants.AUTHORIZATION_CODE,
+        OAuth2Constants.IMPLICIT, OAuth2Constants.REFRESH_TOKEN, OAuth2Constants.PASSWORD, OAuth2Constants.CLIENT_CREDENTIALS,
+        OAuth2Constants.DEVICE_CODE_GRANT_TYPE,
+        OAuth2Constants.CIBA_GRANT_TYPE);
 
     public static final List<String> DEFAULT_RESPONSE_TYPES_SUPPORTED = list(OAuth2Constants.CODE, OIDCResponseType.NONE, OIDCResponseType.ID_TOKEN, OIDCResponseType.TOKEN, "id_token token", "code id_token", "code token", "code id_token token");
 
     public static final List<String> DEFAULT_SUBJECT_TYPES_SUPPORTED = list("public", "pairwise");
 
-    public static final List<String> DEFAULT_RESPONSE_MODES_SUPPORTED = list("query", "fragment", "form_post");
+    public static final List<String> DEFAULT_RESPONSE_MODES_SUPPORTED = list("query", "fragment", "form_post", "query.jwt", "fragment.jwt", "form_post.jwt", "jwt");
 
     public static final List<String> DEFAULT_CLIENT_AUTH_SIGNING_ALG_VALUES_SUPPORTED = list(Algorithm.RS256.toString());
 
@@ -76,6 +87,8 @@ public class OIDCWellKnownProvider implements WellKnownProvider {
 
     // KEYCLOAK-7451 OAuth Authorization Server Metadata for Proof Key for Code Exchange
     public static final List<String> DEFAULT_CODE_CHALLENGE_METHODS_SUPPORTED = list(OAuth2Constants.PKCE_METHOD_PLAIN, OAuth2Constants.PKCE_METHOD_S256);
+
+    public static final List<String> DEFAULT_BACKCHANNEL_TOKEN_DELIVERY_MODES_SUPPORTED= list(CibaConfig.DEFAULT_CIBA_POLICY_TOKEN_DELIVERY_MODE);
 
     private KeycloakSession session;
 
@@ -100,6 +113,9 @@ public class OIDCWellKnownProvider implements WellKnownProvider {
         config.setIntrospectionEndpoint(backendUriBuilder.clone().path(OIDCLoginProtocolService.class, "token").path(TokenEndpoint.class, "introspect").build(realm.getName(), OIDCLoginProtocol.LOGIN_PROTOCOL).toString());
         config.setUserinfoEndpoint(backendUriBuilder.clone().path(OIDCLoginProtocolService.class, "issueUserInfo").build(realm.getName(), OIDCLoginProtocol.LOGIN_PROTOCOL).toString());
         config.setLogoutEndpoint(frontendUriBuilder.clone().path(OIDCLoginProtocolService.class, "logout").build(realm.getName(), OIDCLoginProtocol.LOGIN_PROTOCOL).toString());
+        config.setDeviceAuthorizationEndpoint(frontendUriBuilder.clone().path(OIDCLoginProtocolService.class, "auth")
+            .path(AuthorizationEndpoint.class, "authorizeDevice").path(DeviceEndpoint.class, "handleDeviceRequest")
+            .build(realm.getName(), OIDCLoginProtocol.LOGIN_PROTOCOL).toString());
         URI jwksUri = backendUriBuilder.clone().path(OIDCLoginProtocolService.class, "certs").build(realm.getName(),
             OIDCLoginProtocol.LOGIN_PROTOCOL);
 
@@ -112,8 +128,8 @@ public class OIDCWellKnownProvider implements WellKnownProvider {
         config.setRegistrationEndpoint(RealmsResource.clientRegistrationUrl(backendUriInfo).path(ClientRegistrationService.class, "provider").build(realm.getName(), OIDCClientRegistrationProviderFactory.ID).toString());
 
         config.setIdTokenSigningAlgValuesSupported(getSupportedSigningAlgorithms(false));
-        config.setIdTokenEncryptionAlgValuesSupported(getSupportedIdTokenEncryptionAlg(false));
-        config.setIdTokenEncryptionEncValuesSupported(getSupportedIdTokenEncryptionEnc(false));
+        config.setIdTokenEncryptionAlgValuesSupported(getSupportedEncryptionAlg(false));
+        config.setIdTokenEncryptionEncValuesSupported(getSupportedEncryptionEnc(false));
         config.setUserInfoSigningAlgValuesSupported(getSupportedSigningAlgorithms(true));
         config.setRequestObjectSigningAlgValuesSupported(getSupportedClientSigningAlgorithms(true));
         config.setResponseTypesSupported(DEFAULT_RESPONSE_TYPES_SUPPORTED);
@@ -125,6 +141,10 @@ public class OIDCWellKnownProvider implements WellKnownProvider {
         config.setTokenEndpointAuthSigningAlgValuesSupported(getSupportedClientSigningAlgorithms(false));
         config.setIntrospectionEndpointAuthMethodsSupported(getClientAuthMethodsSupported());
         config.setIntrospectionEndpointAuthSigningAlgValuesSupported(getSupportedClientSigningAlgorithms(false));
+
+        config.setAuthorizationSigningAlgValuesSupported(getSupportedSigningAlgorithms(false));
+        config.setAuthorizationEncryptionAlgValuesSupported(getSupportedEncryptionAlg(false));
+        config.setAuthorizationEncryptionEncValuesSupported(getSupportedEncryptionEnc(false));
 
         config.setClaimsSupported(DEFAULT_CLAIMS_SUPPORTED);
         config.setClaimTypesSupported(DEFAULT_CLAIM_TYPES_SUPPORTED);
@@ -153,13 +173,19 @@ public class OIDCWellKnownProvider implements WellKnownProvider {
 
         // NOTE: Don't hardcode HTTPS checks here. JWKS URI is exposed just in the development/testing environment. For the production environment, the OIDCWellKnownProvider
         // is not exposed over "http" at all.
-        //if (isHttps(jwksUri)) {
         config.setRevocationEndpoint(revocationEndpoint.toString());
         config.setRevocationEndpointAuthMethodsSupported(getClientAuthMethodsSupported());
         config.setRevocationEndpointAuthSigningAlgValuesSupported(getSupportedClientSigningAlgorithms(false));
 
         config.setBackchannelLogoutSupported(true);
         config.setBackchannelLogoutSessionSupported(true);
+
+        config.setBackchannelTokenDeliveryModesSupported(DEFAULT_BACKCHANNEL_TOKEN_DELIVERY_MODES_SUPPORTED);
+        config.setBackchannelAuthenticationEndpoint(CibaGrantType.authorizationUrl(backendUriInfo.getBaseUriBuilder()).build(realm.getName()).toString());
+        config.setBackchannelAuthenticationRequestSigningAlgValuesSupported(getSupportedBackchannelAuthenticationRequestSigningAlgorithms());
+
+        config.setPushedAuthorizationRequestEndpoint(ParEndpoint.parUrl(backendUriInfo.getBaseUriBuilder()).build(realm.getName()).toString());
+        config.setRequirePushedAuthorizationRequests(Boolean.FALSE);
 
         config.setAuthorizationDetailsTypesSupported(getAuthorizationDetailsTypesSupported());
 
@@ -197,6 +223,15 @@ public class OIDCWellKnownProvider implements WellKnownProvider {
         return supportedAlgorithms.collect(Collectors.toList());
     }
 
+    private List<String> getSupportedAsymmetricAlgorithms() {
+        return getSupportedAlgorithms(SignatureProvider.class, false).stream()
+                .map(algorithm -> new AbstractMap.SimpleEntry<>(algorithm, session.getProvider(SignatureProvider.class, algorithm)))
+                .filter(entry -> entry.getValue() != null)
+                .filter(entry -> entry.getValue().isAsymmetricAlgorithm())
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
+    }
+
     private List<String> getSupportedSigningAlgorithms(boolean includeNone) {
         return getSupportedAlgorithms(SignatureProvider.class, includeNone);
     }
@@ -205,11 +240,15 @@ public class OIDCWellKnownProvider implements WellKnownProvider {
         return getSupportedAlgorithms(ClientSignatureVerifierProvider.class, includeNone);
     }
 
-    private List<String> getSupportedIdTokenEncryptionAlg(boolean includeNone) {
+    private List<String> getSupportedBackchannelAuthenticationRequestSigningAlgorithms() {
+        return getSupportedAsymmetricAlgorithms();
+    }
+
+    private List<String> getSupportedEncryptionAlg(boolean includeNone) {
         return getSupportedAlgorithms(CekManagementProvider.class, includeNone);
     }
 
-    private List<String> getSupportedIdTokenEncryptionEnc(boolean includeNone) {
+    private List<String> getSupportedEncryptionEnc(boolean includeNone) {
         return getSupportedAlgorithms(ContentEncryptionProvider.class, includeNone);
     }
 }

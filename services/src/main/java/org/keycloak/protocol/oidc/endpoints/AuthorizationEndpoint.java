@@ -18,8 +18,8 @@
 package org.keycloak.protocol.oidc.endpoints;
 
 import org.jboss.logging.Logger;
+import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.keycloak.OAuth2Constants;
-import org.keycloak.OAuthErrorException;
 import org.keycloak.authentication.AuthenticationProcessor;
 import org.keycloak.constants.AdapterConstants;
 import org.keycloak.events.Details;
@@ -32,7 +32,6 @@ import org.keycloak.models.ClientModel;
 import org.keycloak.models.Constants;
 import org.keycloak.models.RealmModel;
 import org.keycloak.protocol.AuthorizationEndpointBase;
-import org.keycloak.protocol.oidc.OIDCAdvancedConfigWrapper;
 import org.keycloak.protocol.oidc.OIDCLoginProtocol;
 import org.keycloak.protocol.oidc.OIDCWellKnownProviderFactory;
 import org.keycloak.protocol.oidc.TokenManager;
@@ -40,17 +39,15 @@ import org.keycloak.protocol.oidc.endpoints.request.AuthorizationEndpointRequest
 import org.keycloak.protocol.oidc.endpoints.request.AuthorizationEndpointRequestParserProcessor;
 import org.keycloak.protocol.oidc.rar.RichAuthzRequestProcessorProvider;
 import org.keycloak.protocol.oidc.representations.OIDCConfigurationRepresentation;
+import org.keycloak.protocol.oidc.grants.device.endpoints.DeviceEndpoint;
 import org.keycloak.protocol.oidc.utils.OIDCRedirectUriBuilder;
 import org.keycloak.protocol.oidc.utils.OIDCResponseMode;
 import org.keycloak.protocol.oidc.utils.OIDCResponseType;
 import org.keycloak.protocol.oidc.utils.RedirectUtils;
 import org.keycloak.provider.Provider;
 import org.keycloak.services.ErrorPageException;
-import org.keycloak.services.ServicesLogger;
 import org.keycloak.services.Urls;
-import org.keycloak.services.clientpolicy.ClientPolicyContext;
 import org.keycloak.services.clientpolicy.ClientPolicyException;
-import org.keycloak.services.clientpolicy.DefaultClientPolicyManager;
 import org.keycloak.services.clientpolicy.context.AuthorizationRequestContext;
 import org.keycloak.services.messages.Messages;
 import org.keycloak.services.resources.LoginActionsService;
@@ -62,6 +59,7 @@ import org.keycloak.wellknown.WellKnownProvider;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -86,9 +84,6 @@ public class AuthorizationEndpoint extends AuthorizationEndpointBase {
      * @see AuthenticationSessionModel#getClientNote(String)
      */
     public static final String LOGIN_SESSION_NOTE_ADDITIONAL_REQ_PARAMS_PREFIX = "client_request_param_";
-
-    // https://tools.ietf.org/html/rfc7636#section-4.2
-    private static final Pattern VALID_CODE_CHALLENGE_PATTERN = Pattern.compile("^[0-9a-zA-Z\\-\\.~_]+$");
 
     private enum Action {
         REGISTER, CODE, FORGOT_CREDENTIALS
@@ -122,6 +117,16 @@ public class AuthorizationEndpoint extends AuthorizationEndpointBase {
         return process(session.getContext().getUri().getQueryParameters());
     }
 
+    /**
+     * OAuth 2.0 Device Authorization endpoint
+     */
+    @Path("device")
+    public Object authorizeDevice() {
+        DeviceEndpoint endpoint = new DeviceEndpoint(realm, event);
+        ResteasyProviderFactory.getInstance().injectProperties(endpoint);
+        return endpoint;
+    }
+
     private Response process(MultivaluedMap<String, String> params) {
         String clientId = AuthorizationEndpointRequestParserProcessor.getClientId(event, session, params);
 
@@ -131,36 +136,42 @@ public class AuthorizationEndpoint extends AuthorizationEndpointBase {
 
         request = AuthorizationEndpointRequestParserProcessor.parseRequest(event, session, client, params);
 
-        checkRedirectUri();
-        Response errorResponse = checkResponseType();
-        if (errorResponse != null) {
-            return errorResponse;
+        AuthorizationEndpointChecker checker = new AuthorizationEndpointChecker()
+                .event(event)
+                .client(client)
+                .realm(realm)
+                .request(request)
+                .session(session)
+                .params(params);
+
+        try {
+            checker.checkRedirectUri();
+            this.redirectUri = checker.getRedirectUri();
+        } catch (AuthorizationEndpointChecker.AuthorizationCheckException ex) {
+            ex.throwAsErrorPageException(authenticationSession);
         }
 
-        if (request.getInvalidRequestMessage() != null) {
-            event.error(Errors.INVALID_REQUEST);
-            return redirectErrorToClient(parsedResponseMode, Errors.INVALID_REQUEST, request.getInvalidRequestMessage());
+        try {
+            checker.checkResponseType();
+            this.parsedResponseType = checker.getParsedResponseType();
+            this.parsedResponseMode = checker.getParsedResponseMode();
+        } catch (AuthorizationEndpointChecker.AuthorizationCheckException ex) {
+            OIDCResponseMode responseMode = checker.getParsedResponseMode() != null ? checker.getParsedResponseMode() : OIDCResponseMode.QUERY;
+            return redirectErrorToClient(responseMode, ex.getError(), ex.getErrorDescription());
+        }
+        if (action == null) {
+            action = AuthorizationEndpoint.Action.CODE;
         }
 
-        if (!TokenUtil.isOIDCRequest(request.getScope())) {
-            ServicesLogger.LOGGER.oidcScopeMissing();
-        }
-
-        if (!TokenManager.isValidScope(request.getScope(), client)) {
-            ServicesLogger.LOGGER.invalidParameter(OIDCLoginProtocol.SCOPE_PARAM);
-            event.error(Errors.INVALID_REQUEST);
-            return redirectErrorToClient(parsedResponseMode, OAuthErrorException.INVALID_SCOPE, "Invalid scopes: " + request.getScope());
-        }
-
-        errorResponse = checkOIDCParams();
-        if (errorResponse != null) {
-            return errorResponse;
-        }
-
-        // https://tools.ietf.org/html/rfc7636#section-4
-        errorResponse = checkPKCEParams();
-        if (errorResponse != null) {
-            return errorResponse;
+        try {
+            checker.checkParRequired();
+            checker.checkInvalidRequestMessage();
+            checker.checkOIDCRequest();
+            checker.checkValidScope();
+            checker.checkOIDCParams();
+            checker.checkPKCEParams();
+        } catch (AuthorizationEndpointChecker.AuthorizationCheckException ex) {
+            return redirectErrorToClient(parsedResponseMode, ex.getError(), ex.getErrorDescription());
         }
 
         errorResponse = checkAuthorizationDetailsParam();
@@ -447,7 +458,7 @@ public class AuthorizationEndpoint extends AuthorizationEndpointBase {
     }
 
     private Response redirectErrorToClient(OIDCResponseMode responseMode, String error, String errorDescription) {
-        OIDCRedirectUriBuilder errorResponseBuilder = OIDCRedirectUriBuilder.fromUri(redirectUri, responseMode)
+        OIDCRedirectUriBuilder errorResponseBuilder = OIDCRedirectUriBuilder.fromUri(redirectUri, responseMode, session, null)
                 .addParam(OAuth2Constants.ERROR, error);
 
         if (errorDescription != null) {
@@ -460,21 +471,6 @@ public class AuthorizationEndpoint extends AuthorizationEndpointBase {
 
         return errorResponseBuilder.build();
     }
-
-    private void checkRedirectUri() {
-        String redirectUriParam = request.getRedirectUriParam();
-        boolean isOIDCRequest = TokenUtil.isOIDCRequest(request.getScope());
-
-        event.detail(Details.REDIRECT_URI, redirectUriParam);
-
-        // redirect_uri parameter is required per OpenID Connect, but optional per OAuth2
-        redirectUri = RedirectUtils.verifyRedirectUri(session, redirectUriParam, client, isOIDCRequest);
-        if (redirectUri == null) {
-            event.error(Errors.INVALID_REDIRECT_URI);
-            throw new ErrorPageException(session, authenticationSession, Response.Status.BAD_REQUEST, Messages.INVALID_PARAMETER, OIDCLoginProtocol.REDIRECT_URI_PARAM);
-        }
-    }
-
 
     private void updateAuthenticationSession() {
         authenticationSession.setProtocol(OIDCLoginProtocol.LOGIN_PROTOCOL);
@@ -509,7 +505,6 @@ public class AuthorizationEndpoint extends AuthorizationEndpointBase {
             }
         }
     }
-
 
     private Response buildAuthorizationCodeAuthorizationResponse() {
         this.event.event(EventType.LOGIN);

@@ -131,6 +131,16 @@ public class OIDCAdvancedConfigWrapper {
         setAttribute(OIDCConfigAttributes.USE_MTLS_HOK_TOKEN, val);
     }
 
+    public boolean isUseRefreshToken() {
+        String useRefreshToken = getAttribute(OIDCConfigAttributes.USE_REFRESH_TOKEN, "true");
+        return Boolean.parseBoolean(useRefreshToken);
+    }
+
+    public void setUseRefreshToken(boolean useRefreshToken) {
+        String val = String.valueOf(useRefreshToken);
+        setAttribute(OIDCConfigAttributes.USE_REFRESH_TOKEN, val);
+    }
+
     /**
      * If true, then Client Credentials Grant generates refresh token and creates user session. This is not per specs, so it is false by default
      * For the details @see https://tools.ietf.org/html/rfc6749#section-4.4.3
@@ -182,6 +192,29 @@ public class OIDCAdvancedConfigWrapper {
 
     public void setIdTokenEncryptedResponseEnc(String encName) {
         setAttribute(OIDCConfigAttributes.ID_TOKEN_ENCRYPTED_RESPONSE_ENC, encName);
+    }
+
+    public String getAuthorizationSignedResponseAlg() {
+        return getAttribute(OIDCConfigAttributes.AUTHORIZATION_SIGNED_RESPONSE_ALG);
+    }
+    public void setAuthorizationSignedResponseAlg(String algName) {
+        setAttribute(OIDCConfigAttributes.AUTHORIZATION_SIGNED_RESPONSE_ALG, algName);
+    }
+
+    public String getAuthorizationEncryptedResponseAlg() {
+        return getAttribute(OIDCConfigAttributes.AUTHORIZATION_ENCRYPTED_RESPONSE_ALG);
+    }
+
+    public void setAuthorizationEncryptedResponseAlg(String algName) {
+        setAttribute(OIDCConfigAttributes.AUTHORIZATION_ENCRYPTED_RESPONSE_ALG, algName);
+    }
+
+    public String getAuthorizationEncryptedResponseEnc() {
+        return getAttribute(OIDCConfigAttributes.AUTHORIZATION_ENCRYPTED_RESPONSE_ENC);
+    }
+
+    public void setAuthorizationEncryptedResponseEnc(String encName) {
+        setAttribute(OIDCConfigAttributes.AUTHORIZATION_ENCRYPTED_RESPONSE_ENC, encName);
     }
 
     public String getTokenEndpointAuthSigningAlg() {

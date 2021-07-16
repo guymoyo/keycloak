@@ -23,7 +23,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
-class Database {
+import liquibase.database.core.H2Database;
+import liquibase.database.core.PostgresDatabase;
+import org.keycloak.connections.jpa.updater.liquibase.PostgresPlusDatabase;
+import org.keycloak.connections.jpa.updater.liquibase.UpdatedMariaDBDatabase;
+import org.keycloak.connections.jpa.updater.liquibase.UpdatedMySqlDatabase;
+
+public class Database {
 
     private static Map<String, Vendor> DATABASES = new HashMap<>();
 
@@ -37,8 +43,18 @@ class Database {
         }
     }
 
-    static boolean isSupported(String alias) {
+    public static boolean isSupported(String alias) {
         return DATABASES.containsKey(alias);
+    }
+
+    static Optional<String> getDatabaseKind(String alias) {
+        Vendor vendor = DATABASES.get(alias);
+
+        if (vendor == null) {
+            return Optional.empty();
+        }
+
+        return Optional.of(vendor.databaseKind);
     }
 
     static Optional<String> getDefaultUrl(String alias) {
@@ -72,21 +88,27 @@ class Database {
     }
 
     private enum Vendor {
-        H2("org.h2.jdbcx.JdbcDataSource", "io.quarkus.hibernate.orm.runtime.dialect.QuarkusH2Dialect",
-                new Function<String, String>() {
-                    @Override
-                    public String apply(String alias) {
-                        if ("h2-file".equalsIgnoreCase(alias)) {
-                            return "jdbc:h2:file:${kc.home.dir:${kc.db.url.path:~}}" + File.separator + "${kc.data.dir:data}" + File.separator + "keycloakdb${kc.db.url.properties:;;AUTO_SERVER=TRUE}";
-                        }
-                        return "jdbc:h2:mem:keycloakdb${kc.db.url.properties:}";
+        H2("h2", "org.h2.jdbcx.JdbcDataSource", "io.quarkus.hibernate.orm.runtime.dialect.QuarkusH2Dialect",
+            new Function<String, String>() {
+                @Override
+                public String apply(String alias) {
+                    if ("h2-file".equalsIgnoreCase(alias)) {
+                        return "jdbc:h2:file:${kc.home.dir:${kc.db.url.path:~}}" + File.separator + "${kc.data.dir:data}"
+                            + File.separator + "keycloakdb${kc.db.url.properties:;;AUTO_SERVER=TRUE}";
                     }
-                }, "h2-mem", "h2-file"),
-        MYSQL("com.mysql.cj.jdbc.MysqlXADataSource", "org.hibernate.dialect.MySQL8Dialect",
-                "jdbc:mysql://${kc.db.url.host:localhost}/${kc.db.url.database:keycloak}${kc.db.url.properties:}"),
-        MARIADB("org.mariadb.jdbc.MySQLDataSource", "org.hibernate.dialect.MariaDBDialect",
-                "jdbc:mariadb://${kc.db.url.host:localhost}/${kc.db.url.database:keycloak}${kc.db.url.properties:}"),
-        POSTGRES("org.postgresql.xa.PGXADataSource", new Function<String, String>() {
+                    return "jdbc:h2:mem:keycloakdb${kc.db.url.properties:}";
+                }
+            }, "h2-mem", "h2-file", H2Database.class
+                .getName()),
+        MYSQL("mysql", "com.mysql.cj.jdbc.MysqlXADataSource", "org.hibernate.dialect.MySQL8Dialect",
+            "jdbc:mysql://${kc.db.url.host:localhost}/${kc.db.url.database:keycloak}${kc.db.url.properties:}",
+            UpdatedMySqlDatabase.class
+                .getName()),
+        MARIADB("mariadb", "org.mariadb.jdbc.MySQLDataSource", "org.hibernate.dialect.MariaDBDialect",
+            "jdbc:mariadb://${kc.db.url.host:localhost}/${kc.db.url.database:keycloak}${kc.db.url.properties:}",
+            UpdatedMariaDBDatabase.class
+                .getName()),
+        POSTGRES("postgresql", "org.postgresql.xa.PGXADataSource", new Function<String, String>() {
             @Override
             public String apply(String alias) {
                 if ("postgres-95".equalsIgnoreCase(alias)) {
@@ -95,26 +117,29 @@ class Database {
                 return "io.quarkus.hibernate.orm.runtime.dialect.QuarkusPostgreSQL10Dialect";
             }
         }, "jdbc:postgresql://${kc.db.url.host:localhost}/${kc.db.url.database:keycloak}${kc.db.url.properties:}",
-                "postgres-95", "postgres-10");
+            "postgres-95", "postgres-10", PostgresDatabase.class.getName(), PostgresPlusDatabase.class.getName());
 
+        final String databaseKind;
         final String driver;
         final Function<String, String> dialect;
         final Function<String, String> defaultUrl;
         final String[] aliases;
 
-        Vendor(String driver, String dialect, String defaultUrl, String... aliases) {
-            this(driver, (alias) -> dialect, (alias) -> defaultUrl, aliases);
+        Vendor(String databaseKind, String driver, String dialect, String defaultUrl, String... aliases) {
+            this(databaseKind, driver, (alias) -> dialect, (alias) -> defaultUrl, aliases);
         }
 
-        Vendor(String driver, String dialect, Function<String, String> defaultUrl, String... aliases) {
-            this(driver, (alias) -> dialect, defaultUrl, aliases);
+        Vendor(String databaseKind, String driver, String dialect, Function<String, String> defaultUrl, String... aliases) {
+            this(databaseKind, driver, (alias) -> dialect, defaultUrl, aliases);
         }
 
-        Vendor(String driver, Function<String, String> dialect, String defaultUrl, String... aliases) {
-            this(driver, dialect, (alias) -> defaultUrl, aliases);
+        Vendor(String databaseKind, String driver, Function<String, String> dialect, String defaultUrl, String... aliases) {
+            this(databaseKind, driver, dialect, (alias) -> defaultUrl, aliases);
         }
 
-        Vendor(String driver, Function<String, String> dialect, Function<String, String> defaultUrl, String... aliases) {
+        Vendor(String databaseKind, String driver, Function<String, String> dialect, Function<String, String> defaultUrl,
+            String... aliases) {
+            this.databaseKind = databaseKind;
             this.driver = driver;
             this.dialect = dialect;
             this.defaultUrl = defaultUrl;
