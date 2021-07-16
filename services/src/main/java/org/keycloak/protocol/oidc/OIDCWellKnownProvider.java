@@ -35,7 +35,7 @@ import org.keycloak.protocol.oidc.endpoints.TokenEndpoint;
 import org.keycloak.protocol.oidc.grants.ciba.CibaGrantType;
 import org.keycloak.protocol.oidc.grants.device.endpoints.DeviceEndpoint;
 import org.keycloak.protocol.oidc.par.endpoints.ParEndpoint;
-import org.keycloak.protocol.oidc.rar.RichAuthzRequestProcessorProvider;
+import org.keycloak.protocol.oidc.rar.RichAuthzRequestProvider;
 import org.keycloak.protocol.oidc.representations.OIDCConfigurationRepresentation;
 import org.keycloak.protocol.oidc.utils.OIDCResponseType;
 import org.keycloak.provider.Provider;
@@ -58,7 +58,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -209,7 +208,7 @@ public class OIDCWellKnownProvider implements WellKnownProvider {
     }
 
     private List<String> getAuthorizationDetailsTypesSupported() {
-        return session.getProvider(RichAuthzRequestProcessorProvider.class)
+        return session.getProvider(RichAuthzRequestProvider.class)
                 .getAuthorizationDetailsTypesSupported();
     }
 

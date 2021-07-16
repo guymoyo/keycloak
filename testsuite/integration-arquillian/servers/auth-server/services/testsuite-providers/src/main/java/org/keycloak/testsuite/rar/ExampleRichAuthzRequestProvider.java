@@ -2,7 +2,7 @@ package org.keycloak.testsuite.rar;
 
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
-import org.keycloak.protocol.oidc.rar.RichAuthzRequestProcessorProvider;
+import org.keycloak.protocol.oidc.rar.RichAuthzRequestProvider;
 import org.keycloak.util.JsonSerialization;
 
 import javax.ws.rs.core.MultivaluedMap;
@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-public class ExampleRichAuthzRequestProcessorProvider implements RichAuthzRequestProcessorProvider {
+public class ExampleRichAuthzRequestProvider implements RichAuthzRequestProvider {
 
     private final KeycloakSession session;
     private final RealmModel realm;
@@ -20,7 +20,7 @@ public class ExampleRichAuthzRequestProcessorProvider implements RichAuthzReques
 
     public static final List<String> AUTHORIZATION_DETAILS_TYPES_SUPPORTED = Arrays.asList("payment_initiation", "account_information");
 
-    public ExampleRichAuthzRequestProcessorProvider(KeycloakSession session, RealmModel realm) {
+    public ExampleRichAuthzRequestProvider(KeycloakSession session, RealmModel realm) {
         this.session = session;
         this.realm = realm;
     }

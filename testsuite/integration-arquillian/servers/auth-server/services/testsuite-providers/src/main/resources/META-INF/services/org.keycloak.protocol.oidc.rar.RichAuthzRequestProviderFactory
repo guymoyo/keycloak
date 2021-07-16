@@ -16,4 +16,4 @@
 #
 #
 
-org.keycloak.testsuite.rar.ExampleRichAuthzRequestProcessorProviderFactory
+org.keycloak.testsuite.rar.ExampleRichAuthzRequestProviderFactory

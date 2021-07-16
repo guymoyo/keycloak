@@ -18,6 +18,7 @@
 
 package org.keycloak.protocol.oidc.endpoints;
 
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -40,6 +41,7 @@ import org.keycloak.protocol.oidc.TokenManager;
 import org.keycloak.protocol.oidc.endpoints.request.AuthorizationEndpointRequest;
 import org.keycloak.protocol.oidc.endpoints.request.AuthorizationEndpointRequestParserProcessor;
 import org.keycloak.protocol.oidc.endpoints.request.RequestUriType;
+import org.keycloak.protocol.oidc.rar.RichAuthzRequestProvider;
 import org.keycloak.protocol.oidc.utils.OIDCResponseMode;
 import org.keycloak.protocol.oidc.utils.OIDCResponseType;
 import org.keycloak.protocol.oidc.utils.RedirectUtils;
@@ -261,6 +263,30 @@ public class AuthorizationEndpointChecker {
         ServicesLogger.LOGGER.missingParameter(OIDCLoginProtocol.REQUEST_URI_PARAM);
         event.error(Errors.INVALID_REQUEST);
         throw new AuthorizationCheckException(Response.Status.BAD_REQUEST, OAuthErrorException.INVALID_REQUEST, "Pushed Authorization Request is only allowed.");
+    }
+
+    public void checkAuthorizationDetailsParam() throws AuthorizationCheckException {
+
+        if( request.getAuthorizationDetails() != null) {
+
+            RichAuthzRequestProvider rarProvider = session.getProvider(RichAuthzRequestProvider.class);
+            if (rarProvider == null) {
+                throw new IllegalArgumentException("No provider for rarProvider");
+            }
+
+            List<String> authorizationDetailsTypesSupported = rarProvider.getAuthorizationDetailsTypesSupported();
+            if (authorizationDetailsTypesSupported == null) {
+                throw new IllegalArgumentException("Authorization Details Types Supported has not be defined");
+            }
+
+            List<String> authorizationDetailsTypes = OIDCAdvancedConfigWrapper.fromClientModel(client).getAuthorizationDetailsTypes();
+            try {
+                rarProvider.checkAuthorizationDetails(request.getAuthorizationDetails(), authorizationDetailsTypes);
+            } catch (Exception e) {
+                event.error(Errors.INVALID_REQUEST);
+                throw new AuthorizationCheckException(Response.Status.BAD_REQUEST, OAuthErrorException.INVALID_REQUEST, "Pushed Authorization Request is only allowed.");
+            }
+        }
     }
 
     // https://tools.ietf.org/html/rfc7636#section-4

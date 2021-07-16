@@ -5,15 +5,15 @@ import org.keycloak.models.KeycloakContext;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
 import org.keycloak.models.RealmModel;
-import org.keycloak.protocol.oidc.rar.RichAuthzRequestProcessorProvider;
-import org.keycloak.protocol.oidc.rar.RichAuthzRequestProcessorProviderFactory;
+import org.keycloak.protocol.oidc.rar.RichAuthzRequestProvider;
+import org.keycloak.protocol.oidc.rar.RichAuthzRequestProviderFactory;
 
-public class ExampleRichAuthzRequestProcessorProviderFactory implements RichAuthzRequestProcessorProviderFactory {
+public class ExampleRichAuthzRequestProviderFactory implements RichAuthzRequestProviderFactory {
     @Override
-    public RichAuthzRequestProcessorProvider create(KeycloakSession session) {
+    public RichAuthzRequestProvider create(KeycloakSession session) {
         KeycloakContext context = session.getContext();
         RealmModel realm = context.getRealm();
-        return new ExampleRichAuthzRequestProcessorProvider(session, realm);
+        return new ExampleRichAuthzRequestProvider(session, realm);
     }
 
     @Override

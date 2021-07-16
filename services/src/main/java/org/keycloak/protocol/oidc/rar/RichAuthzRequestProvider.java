@@ -21,7 +21,7 @@ import org.keycloak.provider.Provider;
 import javax.ws.rs.core.MultivaluedMap;
 import java.util.List;
 
-public interface RichAuthzRequestProcessorProvider extends Provider {
+public interface RichAuthzRequestProvider extends Provider {
 
     /**
      * This method do several check such as:
