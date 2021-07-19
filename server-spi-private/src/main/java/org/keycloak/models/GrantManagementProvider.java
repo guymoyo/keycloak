@@ -23,8 +23,6 @@ public interface GrantManagementProvider extends Provider {
 
     boolean revokeGrantByGrantId(RealmModel realm, String grantId, String clientId) throws Exception;
 
-    UserGrantModel getGrantByGrantId(RealmModel realm, String grantId) throws Exception;
-
     UserGrantModel getGrantByGrantIdAndClientId(RealmModel realm, String grantId, String clientId) throws Exception;
 
     void adduserGrant(RealmModel realm, UserGrantModel userGrantModel) throws Exception;

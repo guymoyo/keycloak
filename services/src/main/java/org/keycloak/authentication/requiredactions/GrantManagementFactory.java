@@ -20,13 +20,16 @@ package org.keycloak.authentication.requiredactions;
 import org.keycloak.Config;
 import org.keycloak.authentication.RequiredActionFactory;
 import org.keycloak.authentication.RequiredActionProvider;
+import org.keycloak.common.Profile;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
 import org.keycloak.models.UserModel;
+import org.keycloak.provider.EnvironmentDependentProviderFactory;
 
 
-public class GrantManagementFactory implements RequiredActionFactory {
+public class GrantManagementFactory implements RequiredActionFactory, EnvironmentDependentProviderFactory {
 
+    public static final String PROVIDER_ID = "grant-management";
     private static final GrantManagement SINGLETON = new GrantManagement();
 
     @Override
@@ -36,7 +39,7 @@ public class GrantManagementFactory implements RequiredActionFactory {
 
 
     @Override
-    public String getId() { return UserModel.RequiredAction.GRANT_MANAGEMENT.name(); }
+    public String getId() { return PROVIDER_ID; }
 
     @Override
     public String getDisplayText() {
@@ -56,6 +59,11 @@ public class GrantManagementFactory implements RequiredActionFactory {
     @Override
     public void close() {
 
+    }
+
+    @Override
+    public boolean isSupported() {
+        return Profile.isFeatureEnabled(Profile.Feature.GRANT_MANAGEMENT);
     }
 
 }

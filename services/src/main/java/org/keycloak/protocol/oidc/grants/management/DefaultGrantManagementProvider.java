@@ -17,7 +17,11 @@
 package org.keycloak.protocol.oidc.grants.management;
 
 
-import org.keycloak.models.*;
+
+import org.keycloak.models.GrantManagementProvider;
+import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.RealmModel;
+import org.keycloak.models.UserGrantModel;
 import org.keycloak.util.JsonSerialization;
 
 import java.io.IOException;
@@ -72,16 +76,6 @@ public class DefaultGrantManagementProvider implements GrantManagementProvider {
         } catch (Exception e) {
             return false;
         }
-    }
-
-    @Override
-    public UserGrantModel getGrantByGrantId(RealmModel realm, String grantId) throws Exception {
-        GrantsRepresentation grantsRepresentation = getGrantsRepresentation(realm);
-        UserGrantModel userGrantModel = grantsRepresentation.getGrants().stream()
-                .filter(grant -> grant.getGrantId().equals(grantId))
-                .findFirst().orElse(null);
-
-        return  userGrantModel;
     }
 
     @Override

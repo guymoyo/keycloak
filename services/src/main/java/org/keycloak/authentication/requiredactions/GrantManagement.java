@@ -27,9 +27,17 @@ import org.keycloak.events.Details;
 import org.keycloak.events.Errors;
 import org.keycloak.events.EventBuilder;
 import org.keycloak.events.EventType;
-import org.keycloak.models.*;
+
+import org.keycloak.models.ClientModel;
+import org.keycloak.models.RealmModel;
+import org.keycloak.models.UserGrantModel;
+import org.keycloak.models.UserModel;
+import org.keycloak.models.GrantManagementProvider;
+import org.keycloak.models.UserConsentModel;
+import org.keycloak.models.ClientScopeModel;
 import org.keycloak.models.utils.KeycloakModelUtils;
 import org.keycloak.protocol.oidc.OIDCLoginProtocol;
+import org.keycloak.protocol.oidc.grants.management.Constants;
 import org.keycloak.services.managers.AuthenticationManager;
 import org.keycloak.sessions.AuthenticationSessionModel;
 
@@ -55,7 +63,7 @@ public class GrantManagement implements RequiredActionProvider {
 
         if(Constants.GRANT_MANAGEMENT_ACTIONS_SUPPORTED_BY_AUTHZ_REQUEST.contains(grantManagementAction)) {
 
-            context.getUser().addRequiredAction(UserModel.RequiredAction.GRANT_MANAGEMENT);
+            context.getUser().addRequiredAction(GrantManagementFactory.PROVIDER_ID);
             logger.debug("User is required to accept or reject the grant");
         }
     }
@@ -236,9 +244,9 @@ public class GrantManagement implements RequiredActionProvider {
     }
 
     private void cleanSession(RequiredActionContext context, RequiredActionContext.KcActionStatus status) {
-        context.getAuthenticationSession().removeRequiredAction(UserModel.RequiredAction.GRANT_MANAGEMENT.name());
+        context.getAuthenticationSession().removeRequiredAction(GrantManagementFactory.PROVIDER_ID);
         context.getAuthenticationSession().removeAuthNote(AuthenticationProcessor.CURRENT_AUTHENTICATION_EXECUTION);
-        AuthenticationManager.setKcActionStatus(UserModel.RequiredAction.GRANT_MANAGEMENT.name(), status, context.getAuthenticationSession());
+        AuthenticationManager.setKcActionStatus(GrantManagementFactory.PROVIDER_ID, status, context.getAuthenticationSession());
     }
 
     @Override

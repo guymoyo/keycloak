@@ -26,8 +26,6 @@ import org.keycloak.protocol.oidc.ext.OIDCExtProvider;
 import org.keycloak.protocol.oidc.ext.OIDCExtProviderFactory;
 import org.keycloak.provider.EnvironmentDependentProviderFactory;
 
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.UriBuilder;
 
