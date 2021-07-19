@@ -82,6 +82,7 @@ public class DefaultRequiredActions {
             termsAndConditions.setPriority(20);
             realm.addRequiredActionProvider(termsAndConditions);
         }
+
         addUpdateLocaleAction(realm);
         addDeleteAccountAction(realm);
     }
