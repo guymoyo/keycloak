@@ -28,6 +28,7 @@ import javax.ws.rs.core.Response;
 import org.jboss.logging.Logger;
 import org.keycloak.OAuth2Constants;
 import org.keycloak.OAuthErrorException;
+import org.keycloak.common.Profile;
 import org.keycloak.events.Details;
 import org.keycloak.events.Errors;
 import org.keycloak.events.EventBuilder;
@@ -52,6 +53,7 @@ import org.keycloak.services.messages.Messages;
 import org.keycloak.services.resources.Cors;
 import org.keycloak.sessions.AuthenticationSessionModel;
 import org.keycloak.util.TokenUtil;
+import org.keycloak.utils.ProfileHelper;
 import org.keycloak.utils.StringUtil;
 
 /**
@@ -268,6 +270,8 @@ public class AuthorizationEndpointChecker {
     public void checkAuthorizationDetailsParam() throws AuthorizationCheckException {
 
         if( request.getAuthorizationDetails() != null) {
+
+            ProfileHelper.requireFeature(Profile.Feature.RAR);
 
             RichAuthzRequestProvider rarProvider = session.getProvider(RichAuthzRequestProvider.class);
             if (rarProvider == null) {

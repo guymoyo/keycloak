@@ -17,11 +17,13 @@
 
 package org.keycloak.protocol.oidc.rar;
 
+import org.keycloak.common.Profile;
+import org.keycloak.provider.EnvironmentDependentProviderFactory;
 import org.keycloak.provider.Provider;
 import org.keycloak.provider.ProviderFactory;
 import org.keycloak.provider.Spi;
 
-public class RichAuthzRequestSpi implements Spi {
+public class RichAuthzRequestSpi implements Spi, EnvironmentDependentProviderFactory {
     @Override
     public boolean isInternal() {
         return false;
@@ -40,6 +42,11 @@ public class RichAuthzRequestSpi implements Spi {
     @Override
     public Class<? extends ProviderFactory> getProviderFactoryClass() {
         return RichAuthzRequestProviderFactory.class;
+    }
+
+    @Override
+    public boolean isSupported() {
+        return Profile.isFeatureEnabled(Profile.Feature.RAR);
     }
 }
 
