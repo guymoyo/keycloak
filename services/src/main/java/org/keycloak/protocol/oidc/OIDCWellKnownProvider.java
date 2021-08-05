@@ -189,6 +189,7 @@ public class OIDCWellKnownProvider implements WellKnownProvider {
         config.setRequirePushedAuthorizationRequests(Boolean.FALSE);
 
         config.setAuthorizationDetailsTypesSupported(getAuthorizationDetailsTypesSupported());
+        config.setAuthorizationDetailsSupported(Boolean.TRUE);
 
         return config;
     }

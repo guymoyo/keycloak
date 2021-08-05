@@ -172,6 +172,9 @@ public class OIDCConfigurationRepresentation {
     @JsonProperty("authorization_details_types_supported")
     private List<String> authorizationDetailsTypesSupported;
 
+    @JsonProperty("authorization_details_supported")
+    private Boolean authorizationDetailsSupported;
+
     protected Map<String, Object> otherClaims = new HashMap<String, Object>();
 
     public String getIssuer() {
@@ -512,6 +515,14 @@ public class OIDCConfigurationRepresentation {
 
     public void setAuthorizationDetailsTypesSupported(List<String> authorizationDetailsTypesSupported) {
         this.authorizationDetailsTypesSupported = authorizationDetailsTypesSupported;
+    }
+
+    public Boolean getAuthorizationDetailsSupported() {
+        return authorizationDetailsSupported;
+    }
+
+    public void setAuthorizationDetailsSupported(Boolean authorizationDetailsSupported) {
+        this.authorizationDetailsSupported = authorizationDetailsSupported;
     }
 
     @JsonAnyGetter
