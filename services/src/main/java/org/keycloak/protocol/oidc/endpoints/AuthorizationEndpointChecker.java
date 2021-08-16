@@ -280,11 +280,6 @@ public class AuthorizationEndpointChecker {
             throw new IllegalArgumentException("No provider for rarProvider");
         }
 
-        List<String> authorizationDetailsTypesSupported = rarProvider.getAuthorizationDetailsTypesSupported();
-        if (authorizationDetailsTypesSupported == null) {
-            throw new IllegalArgumentException("Authorization Details Types Supported has not be defined");
-        }
-
         List<String> authorizationDetailsTypes = OIDCAdvancedConfigWrapper.fromClientModel(client).getAuthorizationDetailsTypes();
         try {
             rarProvider.checkAuthorizationDetails(request.getAuthorizationDetails(), authorizationDetailsTypes);
